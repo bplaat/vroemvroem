@@ -13,9 +13,13 @@ if [ "$1" == "clean" ]; then
     rm -r target
 
 elif [ "$1" == "release" ]; then
+
     mkdir -p target/release
     rm -f target/release/$name-v$version-x86_64.exe
     g++ $release_flags $sources $libs -o target/release/$name-v$version-x86_64.exe
+
+    rm -f -r target/release/assets
+    cp -r assets target/release
 
 else
     mkdir -p target/debug

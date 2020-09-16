@@ -7450,6 +7450,8 @@ static int stbi__info_main(stbi__context *s, int *x, int *y, int *comp)
 
 static int stbi__is_16_main(stbi__context *s)
 {
+   (void)s; // bplaat: Added this line to prevent an unused variable error when only using JPEG loading
+
    #ifndef STBI_NO_PNG
    if (stbi__png_is16(s))  return 1;
    #endif

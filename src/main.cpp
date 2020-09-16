@@ -19,15 +19,81 @@
 // I'm going to write my own C++ Matrix lib in the future
 #include "linmat.h"
 
+// Read file to string
+char *file_read(const char *path) {
+    FILE *file = fopen(path, "rb");
+    fseek(file, 0, SEEK_END);
+    size_t file_size = ftell(file);
+    fseek(file, 0, SEEK_SET);
+    char *text = new char[file_size + 1];
+    fread(text, sizeof(char), file_size, file);
+    text[file_size] = '\0';
+    fclose(file);
+    return text;
+}
+
+
+// BassieMath
+struct Vector3 {
+    float x;
+    float y;
+    float z;
+
+    Vector3& operator +=(const Vector3& a) {
+        x += a.x;
+        y += a.y;
+        z += a.z;
+        return *this;
+    }
+};
+
 // Key down callback
+bool move_forward = false;
+bool move_left = false;
+bool move_right = false;
+bool move_backward = false;
+
+bool wireframe_mode = false;
+
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods) {
     (void)scancode;
     (void)mods;
 
-    // Close window on escape key pressed
+    if (action == GLFW_PRESS) {
+        if (key == GLFW_KEY_W || key == GLFW_KEY_UP) {
+            move_forward = true;
+        }
+        if (key == GLFW_KEY_A || key == GLFW_KEY_LEFT) {
+            move_left = true;
+        }
+        if (key == GLFW_KEY_D || key == GLFW_KEY_RIGHT) {
+            move_right = true;
+        }
+        if (key == GLFW_KEY_S || key == GLFW_KEY_DOWN) {
+            move_backward = true;
+        }
+    }
+
     if (action == GLFW_RELEASE) {
+        if (key == GLFW_KEY_Y) {
+            wireframe_mode = !wireframe_mode;
+        }
+
         if (key == GLFW_KEY_ESCAPE) {
             glfwSetWindowShouldClose(window, GLFW_TRUE);
+        }
+
+        if (key == GLFW_KEY_W || key == GLFW_KEY_UP) {
+            move_forward = false;
+        }
+        if (key == GLFW_KEY_A || key == GLFW_KEY_LEFT) {
+            move_left = false;
+        }
+        if (key == GLFW_KEY_D || key == GLFW_KEY_RIGHT) {
+            move_right = false;
+        }
+        if (key == GLFW_KEY_S || key == GLFW_KEY_DOWN) {
+            move_backward = false;
         }
     }
 }
@@ -70,20 +136,13 @@ int main() {
     // Enable vsync
     glfwSwapInterval(1);
 
-    // Compile vertex shader
-    FILE *vertex_shader_file = fopen("assets/shaders/plane.vert", "rb");
-    fseek(vertex_shader_file, 0, SEEK_END);
-    size_t vertex_shader_file_size = ftell(vertex_shader_file);
-    fseek(vertex_shader_file, 0, SEEK_SET);
-    char *vertex_shader_text = new char[vertex_shader_file_size + 1];
-    fread(vertex_shader_text, sizeof(char), vertex_shader_file_size, vertex_shader_file);
-    vertex_shader_text[vertex_shader_file_size] = '\0';
-    fclose(vertex_shader_file);
+    glEnable(GL_DEPTH_TEST);
 
+    // Compile vertex shader
+    char *vertex_shader_text = file_read("assets/shaders/plane.vert");
     auto vertex_shader = glCreateShader(GL_VERTEX_SHADER);
     glShaderSource(vertex_shader, 1, &vertex_shader_text, nullptr);
     glCompileShader(vertex_shader);
-
     delete vertex_shader_text;
 
     int success;
@@ -97,19 +156,10 @@ int main() {
     }
 
     // Compile fragment shader
-    FILE *fragment_shader_file = fopen("assets/shaders/plane.frag", "rb");
-    fseek(fragment_shader_file, 0, SEEK_END);
-    size_t fragment_shader_file_size = ftell(fragment_shader_file);
-    fseek(fragment_shader_file, 0, SEEK_SET);
-    char *fragment_shader_text = new char[fragment_shader_file_size + 1];
-    fread(fragment_shader_text, sizeof(char), fragment_shader_file_size, fragment_shader_file);
-    fragment_shader_text[fragment_shader_file_size] = '\0';
-    fclose(fragment_shader_file);
-
+    char *fragment_shader_text = file_read("assets/shaders/plane.frag");
     auto fragment_shader = glCreateShader(GL_FRAGMENT_SHADER);
     glShaderSource(fragment_shader, 1, &fragment_shader_text, NULL);
     glCompileShader(fragment_shader);
-
     delete fragment_shader_text;
 
     glGetShaderiv(fragment_shader, GL_COMPILE_STATUS, &success);
@@ -145,16 +195,68 @@ int main() {
 
     // Create vertex buffer
     float vertices[] = {
-        // Vertex position
-                   // Texture position
-        -1,  1,    0, 1,
-         1,  1,    1, 1,
-        -1, -1,    0, 0,
-         1, -1,    1, 0
+        // Vertex position, Texture position
+        -0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
+         0.5f, -0.5f, -0.5f,  1.0f, 0.0f,
+         0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+         0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+        -0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
+        -0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
+
+        -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+         0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
+         0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
+         0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
+        -0.5f,  0.5f,  0.5f,  0.0f, 1.0f,
+        -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+
+        -0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+        -0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+        -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+        -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+        -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+        -0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+
+         0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+         0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+         0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+         0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+         0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+         0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+
+        -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+         0.5f, -0.5f, -0.5f,  1.0f, 1.0f,
+         0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
+         0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
+        -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+        -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+
+        -0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
+         0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+         0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+         0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+        -0.5f,  0.5f,  0.5f,  0.0f, 0.0f,
+        -0.5f,  0.5f, -0.5f,  0.0f, 1.0f
     };
-    GLuint indices[] = {
-        0, 1, 2,
-        1, 2, 3
+    // GLuint indices[] = {
+    //     0, 1, 2,
+    //     3, 7, 1,
+    //     5, 4, 7,
+    //     6, 2, 4,
+    //     0, 1
+    // };
+
+    Vector3 cubePositions[] = {
+        { 0.0f,  0.0f,  0.0f},
+        { 2.0f,  5.0f, -15.0f},
+        {-1.5f, -2.2f, -2.5f},
+        {-3.8f, -2.0f, -12.3f},
+        { 2.4f, -0.4f, -3.5f},
+        {-1.7f,  3.0f, -7.5f},
+        { 1.3f, -2.0f, -2.5f},
+        { 1.5f,  2.0f, -2.5f},
+        { 1.5f,  0.2f, -1.5f},
+        {-1.3f,  1.0f, -1.5f}
     };
 
     GLuint vertex_buffer;
@@ -162,31 +264,27 @@ int main() {
     glBindBuffer(GL_ARRAY_BUFFER, vertex_buffer);
     glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
 
-    GLuint index_buffer;
-    glGenBuffers(1, &index_buffer);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, index_buffer);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+    // GLuint index_buffer;
+    // glGenBuffers(1, &index_buffer);
+    // glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, index_buffer);
+    // glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
 
     // Get uniforms
     GLint matrix_location = glGetUniformLocation(program, "matrix");
 
     // Get attributes
     GLint position_location = glGetAttribLocation(program, "position");
+    glVertexAttribPointer(position_location, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(position_location);
-    glVertexAttribPointer(position_location, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), NULL);
 
     GLint texture_position_location = glGetAttribLocation(program, "texture_position");
+    glVertexAttribPointer(texture_position_location, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void *)(3 * sizeof(float)));
     glEnableVertexAttribArray(texture_position_location);
-    glVertexAttribPointer(texture_position_location, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void *)(2 * sizeof(float)));
 
     // Load texture
     GLuint crate_texture;
     glGenTextures(1, &crate_texture);
     glBindTexture(GL_TEXTURE_2D, crate_texture);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
     int crate_width, crate_height, crate_channels;
     unsigned char *crate_data = stbi_load("assets/images/crate.jpg", &crate_width, &crate_height, &crate_channels, 0);
@@ -200,32 +298,79 @@ int main() {
         return EXIT_FAILURE;
     }
 
+    Vector3 camera = { 0, 0, -10 };
+    Vector3 velocity = { 0, 0, 0 };
+
+    float lastFrame = 0.0f;
+
     // Game loop
     while (!glfwWindowShouldClose(window)) {
+        // Calculate delta
+        float currentFrame = glfwGetTime();
+        float delta = currentFrame - lastFrame;
+        lastFrame = currentFrame;
+
+        // Update player camera
+        velocity.z -= velocity.z * 10 * delta;
+        velocity.x -= velocity.x * 10 * delta;
+
+        auto speed = 3 * delta;
+
+        if (move_forward) {
+            velocity.z += speed;
+        }
+        if (move_left) {
+            velocity.x -= speed / 2;
+        }
+        if (move_right) {
+            velocity.x += speed / 2;
+        }
+        if (move_backward) {
+            velocity.z -= speed;
+        }
+
+        camera += velocity;
+
         // Set viewport
         int width, height;
         glfwGetFramebufferSize(window, &width, &height);
         glViewport(0, 0, width, height);
 
         // Clear and enable depth test
-        glEnable(GL_DEPTH_TEST);
+        glPolygonMode(GL_FRONT_AND_BACK, wireframe_mode ? GL_LINE : GL_FILL);
         glClearColor(0.53, 0.8, 0.92, 1);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         // Use program
         glUseProgram(program);
 
-        // Set model matrix
-        mat4x4 matrix;
-        mat4x4_identity(matrix);
-        mat4x4_rotate_Z(matrix, matrix, (float)glfwGetTime());
-        mat4x4_scale_aniso(matrix, matrix, 0.5, 0.5, 1);
-        glUniformMatrix4fv(matrix_location, 1, GL_FALSE, (const GLfloat *)matrix);
+        // Generate projection
+        mat4x4 projection;
+        mat4x4_identity(projection);
+        mat4x4_perspective(projection, 75, (float)width / height, 0.1, 400);
 
-        /// Draw rect
+        mat4x4 view;
+        mat4x4_identity(view);
+        mat4x4_translate(view, camera.x, camera.y, camera.z);
+
         glBindTexture(GL_TEXTURE_2D, crate_texture);
         glBindVertexArray(vertex_array);
-        glDrawElements(GL_TRIANGLES, sizeof(indices), GL_UNSIGNED_INT, 0);
+
+        for (unsigned int i = 0; i < sizeof(cubePositions) / sizeof(Vector3); i++) {
+            // Set matrix
+            mat4x4 model;
+            mat4x4_translate(model, cubePositions[i].x, cubePositions[i].y, cubePositions[i].z);
+            mat4x4_rotate_X(model, model, (float)glfwGetTime() + 20 * i);
+            mat4x4_rotate_Y(model, model, (float)glfwGetTime() + 20 * i);
+
+            mat4x4 matrix;
+            mat4x4_mul(matrix, view, model);
+            mat4x4_mul(matrix, projection, matrix);
+            glUniformMatrix4fv(matrix_location, 1, GL_FALSE, (const GLfloat *)matrix);
+
+            // glDrawElements(GL_TRIANGLES, sizeof(indices), GL_UNSIGNED_INT, 0);
+            glDrawArrays(GL_TRIANGLES, 0, 36);
+        }
 
         // Render frame
         glfwSwapBuffers(window);
