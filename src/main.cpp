@@ -3,6 +3,9 @@
 
 //  Load standard c++ library
 #include <iostream>
+#include <vector>
+#define _USE_MATH_DEFINES
+#include <cmath>
 
 // Load glad to load modern OpenGL context
 #include "glad.h"
@@ -19,128 +22,135 @@
 // I'm going to write my own C++ Matrix lib in the future
 #include "linmat.h"
 
+// Utils
+
 // Read file to string
 char *file_read(const char *path) {
     FILE *file = fopen(path, "rb");
     fseek(file, 0, SEEK_END);
     size_t file_size = ftell(file);
     fseek(file, 0, SEEK_SET);
-    char *text = new char[file_size + 1];
-    fread(text, sizeof(char), file_size, file);
-    text[file_size] = '\0';
+    char *contents = (char *)malloc(file_size + 1);
+    fread(contents, sizeof(char), file_size, file);
+    contents[file_size] = '\0';
     fclose(file);
-    return text;
+    return contents;
 }
 
+int seed = 1;
+double random() {
+    double x = sin(seed++) * 10000;
+    return x - floor(x);
+}
 
-// BassieMath
+#define MAX(X, Y) (((X) > (Y)) ? (X) : (Y))
+#define MIN(X, Y) (((X) < (Y)) ? (X) : (Y))
+
+bool glfwSetWindowCenter( GLFWwindow * window )
+{
+    if( !window )
+        return false;
+
+    int sx = 0, sy = 0;
+    int px = 0, py = 0;
+    int mx = 0, my = 0;
+    int monitor_count = 0;
+    int best_area = 0;
+    int final_x = 0, final_y = 0;
+
+    glfwGetWindowSize( window , &sx, &sy );
+    glfwGetWindowPos( window , &px, &py );
+
+    // Iterate throug all monitors
+    GLFWmonitor ** m = glfwGetMonitors( &monitor_count );
+    if( !m )
+        return false;
+
+    for( int j = 0; j < monitor_count ; ++j )
+    {
+
+        glfwGetMonitorPos( m[j] , &mx, &my );
+        const GLFWvidmode * mode = glfwGetVideoMode( m[j] );
+        if( !mode )
+            continue;
+
+        // Get intersection of two rectangles - screen and window
+        int minX = MAX( mx , px );
+        int minY = MAX( my , py );
+
+        int maxX = MIN( mx+mode->width , px+sx );
+        int maxY = MIN( my+mode->height , py+sy );
+
+        // Calculate area of the intersection
+        int area = MAX( maxX - minX , 0 ) * MAX( maxY - minY , 0 );
+
+        // If its bigger than actual (window covers more space on this monitor)
+        if( area > best_area )
+        {
+            // Calculate proper position in this monitor
+            final_x = mx + (mode->width-sx)/2;
+            final_y = my + (mode->height-sy)/2;
+
+            best_area = area;
+        }
+
+    }
+
+    // We found something
+    if( best_area )
+        glfwSetWindowPos( window , final_x , final_y );
+
+    // Something is wrong - current window has NOT any intersection with any monitors. Move it to the default one.
+    else
+    {
+        GLFWmonitor * primary = glfwGetPrimaryMonitor( );
+        if( primary )
+        {
+            const GLFWvidmode * desktop = glfwGetVideoMode( primary );
+
+            if( desktop )
+                glfwSetWindowPos( window , (desktop->width-sx)/2 , (desktop->height-sy)/2 );
+            else
+                return false;
+        }
+        else
+            return false;
+    }
+
+    return true;
+}
+
+// Vector 3
 struct Vector3 {
     float x;
     float y;
     float z;
 
-    Vector3& operator +=(const Vector3& a) {
-        x += a.x;
-        y += a.y;
-        z += a.z;
-        return *this;
-    }
+    Vector3& operator+=(const Vector3& a);
 };
 
-// Key down callback
-bool move_forward = false;
-bool move_left = false;
-bool move_right = false;
-bool move_backward = false;
-
-bool wireframe_mode = false;
-
-void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods) {
-    (void)scancode;
-    (void)mods;
-
-    if (action == GLFW_PRESS) {
-        if (key == GLFW_KEY_W || key == GLFW_KEY_UP) {
-            move_forward = true;
-        }
-        if (key == GLFW_KEY_A || key == GLFW_KEY_LEFT) {
-            move_left = true;
-        }
-        if (key == GLFW_KEY_D || key == GLFW_KEY_RIGHT) {
-            move_right = true;
-        }
-        if (key == GLFW_KEY_S || key == GLFW_KEY_DOWN) {
-            move_backward = true;
-        }
-    }
-
-    if (action == GLFW_RELEASE) {
-        if (key == GLFW_KEY_Y) {
-            wireframe_mode = !wireframe_mode;
-        }
-
-        if (key == GLFW_KEY_ESCAPE) {
-            glfwSetWindowShouldClose(window, GLFW_TRUE);
-        }
-
-        if (key == GLFW_KEY_W || key == GLFW_KEY_UP) {
-            move_forward = false;
-        }
-        if (key == GLFW_KEY_A || key == GLFW_KEY_LEFT) {
-            move_left = false;
-        }
-        if (key == GLFW_KEY_D || key == GLFW_KEY_RIGHT) {
-            move_right = false;
-        }
-        if (key == GLFW_KEY_S || key == GLFW_KEY_DOWN) {
-            move_backward = false;
-        }
-    }
+Vector3& Vector3::operator+=(const Vector3& a) {
+    x += a.x;
+    y += a.y;
+    z += a.z;
+    return *this;
 }
 
-// Main function
-int main() {
-    // Init glfw
-    if (!glfwInit()) {
-        return EXIT_FAILURE;
-    }
+// Shader
+class Shader {
+    public:
+        GLuint program;
+        GLint position_attribute;
+        GLint texture_position_attribute;
+        GLint matrix_uniform;
 
-    // Use OpenGL 3.3 core profile
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
-    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+        Shader(const char *vertex_path, const char *fragment_path);
+};
 
-    // Create window
-    auto window = glfwCreateWindow(1280, 720, "VroemVroem", nullptr, nullptr);
-    if (!window) {
-        glfwTerminate();
-        return EXIT_FAILURE;
-    }
-
-    // Register key down callback
-    glfwSetKeyCallback(window, key_callback);
-
-    // Create opengl context
-    glfwMakeContextCurrent(window);
-
-    // Load modern opengl
-    if (!gladLoadGL()) {
-        std::cerr << "[ERROR] Glad OpenGL loading error" << std::endl;
-        glfwTerminate();
-        return EXIT_FAILURE;
-    }
-
-    std::cout << "[INFO] Using: OpenGL " << GLVersion.major << "."  << GLVersion.minor << std::endl;
-
-    // Enable vsync
-    glfwSwapInterval(1);
-
-    glEnable(GL_DEPTH_TEST);
-
-    // Compile vertex shader
-    char *vertex_shader_text = file_read("assets/shaders/plane.vert");
-    auto vertex_shader = glCreateShader(GL_VERTEX_SHADER);
+Shader::Shader(const char *vertex_path, const char *fragment_path) {
+    // Read and compile vertex shader
+    char *vertex_shader_text = file_read(vertex_path);
+    GLuint vertex_shader = glCreateShader(GL_VERTEX_SHADER);
     glShaderSource(vertex_shader, 1, &vertex_shader_text, nullptr);
     glCompileShader(vertex_shader);
     delete vertex_shader_text;
@@ -152,12 +162,12 @@ int main() {
         glGetShaderInfoLog(vertex_shader, sizeof(infoLog), NULL, infoLog);
         std::cerr << "[ERROR] Error compiling vertex shader: " << infoLog << std::endl;
         glfwTerminate();
-        return EXIT_FAILURE;
+        exit(EXIT_FAILURE);
     }
 
     // Compile fragment shader
-    char *fragment_shader_text = file_read("assets/shaders/plane.frag");
-    auto fragment_shader = glCreateShader(GL_FRAGMENT_SHADER);
+    char *fragment_shader_text = file_read(fragment_path);
+    GLuint fragment_shader = glCreateShader(GL_FRAGMENT_SHADER);
     glShaderSource(fragment_shader, 1, &fragment_shader_text, NULL);
     glCompileShader(fragment_shader);
     delete fragment_shader_text;
@@ -167,11 +177,11 @@ int main() {
         glGetShaderInfoLog(fragment_shader, sizeof(infoLog), NULL, infoLog);
         std::cerr << "[ERROR] Error compiling fragment shader: " << infoLog << std::endl;
         glfwTerminate();
-        return EXIT_FAILURE;
+        exit(EXIT_FAILURE);
     }
 
     // Link program
-    auto program = glCreateProgram();
+    program = glCreateProgram();
     glAttachShader(program, vertex_shader);
     glAttachShader(program, fragment_shader);
     glLinkProgram(program);
@@ -181,202 +191,396 @@ int main() {
         glGetProgramInfoLog(program, sizeof(infoLog), NULL, infoLog);
         std::cerr << "[ERROR] Error linking program: " << infoLog << std::endl;
         glfwTerminate();
-        return EXIT_FAILURE;
+        exit(EXIT_FAILURE);
     }
 
     // Delete shaders
     glDeleteShader(vertex_shader);
     glDeleteShader(fragment_shader);
 
+    // Get attributes
+    position_attribute = glGetAttribLocation(program, "position");
+    glVertexAttribPointer(position_attribute, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
+    glEnableVertexAttribArray(position_attribute);
+
+    texture_position_attribute = glGetAttribLocation(program, "texture_position");
+    glVertexAttribPointer(texture_position_attribute, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void *)(3 * sizeof(float)));
+    glEnableVertexAttribArray(texture_position_attribute);
+
+    // Get uniforms
+    matrix_uniform = glGetUniformLocation(program, "matrix");
+}
+
+// Texture
+class Texture {
+    public:
+        GLuint texture;
+
+        Texture(const char *texture_path);
+};
+
+Texture::Texture(const char *texture_path) {
+    int32_t texture_width, texture_height, texture_channels;
+    uint8_t *texture_data = stbi_load("assets/images/crate.jpg", &texture_width, &texture_height, &texture_channels, 0);
+    if (texture_data) {
+        glGenTextures(1, &texture);
+        glBindTexture(GL_TEXTURE_2D, texture);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, texture_width, texture_height, 0, GL_RGB, GL_UNSIGNED_BYTE, texture_data);
+        glGenerateMipmap(GL_TEXTURE_2D);
+        stbi_image_free(texture_data);
+    } else {
+        std::cerr << "[ERROR] Can't load texture: " << texture_path << std::endl;
+        glfwTerminate();
+        exit(EXIT_FAILURE);
+    }
+}
+
+// Object3D
+class Object3D {
+    public:
+        Vector3 position;
+        Vector3 rotation;
+        Vector3 scale;
+        mat4x4 matrix;
+
+        Object3D();
+
+        virtual void updateMatrix();
+};
+
+Object3D::Object3D() {
+    position = { 0, 0, 0 };
+    rotation = { 0, 0, 0 };
+    scale = { 1, 1, 1 };
+    updateMatrix();
+}
+
+void Object3D::updateMatrix() {
+    mat4x4_translate(matrix, position.x, position.y, position.z);
+    mat4x4_rotate_X(matrix, matrix, rotation.x);
+    mat4x4_rotate_Y(matrix, matrix, rotation.y);
+    mat4x4_rotate_Z(matrix, matrix, rotation.z);
+    mat4x4_scale_aniso(matrix, matrix, scale.x, scale.y, scale.z);
+}
+
+// PerspectiveCamera
+class PerspectiveCamera : public Object3D {
+    public:
+        float fov;
+        float aspect;
+        float near;
+        float far;
+
+        PerspectiveCamera(float fov, float aspect, float near, float far);
+
+        void updateMatrix();
+};
+
+PerspectiveCamera::PerspectiveCamera(float fov, float aspect, float near, float far)
+    : fov(fov), aspect(aspect), near(near), far(far) {}
+
+void PerspectiveCamera::updateMatrix() {
+    mat4x4_perspective(matrix, fov, aspect, near, far);
+    mat4x4_translate_in_place(matrix, position.x, position.y, position.z);
+}
+
+// Cube
+class Cube : public Object3D {
+    public:
+        static GLuint vertex_array;
+        static GLuint vertex_buffer;
+
+        Texture *texture;
+
+        static void init();
+
+        Cube();
+
+        void render(PerspectiveCamera *camera, Shader *shader);
+};
+
+GLuint Cube::vertex_array = 0;
+GLuint Cube::vertex_buffer = 0;
+
+void Cube::init() {
     // Create vertext array
-    GLuint vertex_array;
     glGenVertexArrays(1, &vertex_array);
     glBindVertexArray(vertex_array);
 
-    // Create vertex buffer
     float vertices[] = {
         // Vertex position, Texture position
-        -0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
-         0.5f, -0.5f, -0.5f,  1.0f, 0.0f,
-         0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-         0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-        -0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
-        -0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
+        -1, -1, -1,  0, 0,
+         1, -1, -1,  1, 0,
+         1,  1, -1,  1, 1,
+         1,  1, -1,  1, 1,
+        -1,  1, -1,  0, 1,
+        -1, -1, -1,  0, 0,
 
-        -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-         0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
-         0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
-         0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
-        -0.5f,  0.5f,  0.5f,  0.0f, 1.0f,
-        -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+        -1, -1,  1,  0, 0,
+         1, -1,  1,  1, 0,
+         1,  1,  1,  1, 1,
+         1,  1,  1,  1, 1,
+        -1,  1,  1,  0, 1,
+        -1, -1,  1,  0, 0,
 
-        -0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-        -0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-        -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-        -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-        -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-        -0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+        -1,  1,  1,  1, 0,
+        -1,  1, -1,  1, 1,
+        -1, -1, -1,  0, 1,
+        -1, -1, -1,  0, 1,
+        -1, -1,  1,  0, 0,
+        -1,  1,  1,  1, 0,
 
-         0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-         0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-         0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-         0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-         0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-         0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+         1,  1,  1,  1, 0,
+         1,  1, -1,  1, 1,
+         1, -1, -1,  0, 1,
+         1, -1, -1,  0, 1,
+         1, -1,  1,  0, 0,
+         1,  1,  1,  1, 0,
 
-        -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-         0.5f, -0.5f, -0.5f,  1.0f, 1.0f,
-         0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
-         0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
-        -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-        -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+        -1, -1, -1,  0, 1,
+         1, -1, -1,  1, 1,
+         1, -1,  1,  1, 0,
+         1, -1,  1,  1, 0,
+        -1, -1,  1,  0, 0,
+        -1, -1, -1,  0, 1,
 
-        -0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
-         0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-         0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-         0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-        -0.5f,  0.5f,  0.5f,  0.0f, 0.0f,
-        -0.5f,  0.5f, -0.5f,  0.0f, 1.0f
-    };
-    // GLuint indices[] = {
-    //     0, 1, 2,
-    //     3, 7, 1,
-    //     5, 4, 7,
-    //     6, 2, 4,
-    //     0, 1
-    // };
-
-    Vector3 cubePositions[] = {
-        { 0.0f,  0.0f,  0.0f},
-        { 2.0f,  5.0f, -15.0f},
-        {-1.5f, -2.2f, -2.5f},
-        {-3.8f, -2.0f, -12.3f},
-        { 2.4f, -0.4f, -3.5f},
-        {-1.7f,  3.0f, -7.5f},
-        { 1.3f, -2.0f, -2.5f},
-        { 1.5f,  2.0f, -2.5f},
-        { 1.5f,  0.2f, -1.5f},
-        {-1.3f,  1.0f, -1.5f}
+        -1,  1, -1,  0, 1,
+         1,  1, -1,  1, 1,
+         1,  1,  1,  1, 0,
+         1,  1,  1,  1, 0,
+        -1,  1,  1,  0, 0,
+        -1,  1, -1,  0, 1
     };
 
-    GLuint vertex_buffer;
     glGenBuffers(1, &vertex_buffer);
     glBindBuffer(GL_ARRAY_BUFFER, vertex_buffer);
     glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+}
 
-    // GLuint index_buffer;
-    // glGenBuffers(1, &index_buffer);
-    // glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, index_buffer);
-    // glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+Cube::Cube() {
+    texture = nullptr;
+}
 
-    // Get uniforms
-    GLint matrix_location = glGetUniformLocation(program, "matrix");
+void Cube::render(PerspectiveCamera *camera, Shader *shader) {
+    mat4x4 end_matrix;
+    mat4x4_mul(end_matrix, camera->matrix, matrix);
+    glUniformMatrix4fv(shader->matrix_uniform, 1, GL_FALSE, (const GLfloat *)end_matrix);
 
-    // Get attributes
-    GLint position_location = glGetAttribLocation(program, "position");
-    glVertexAttribPointer(position_location, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
-    glEnableVertexAttribArray(position_location);
+    glBindTexture(GL_TEXTURE_2D, texture->texture);
+    glBindVertexArray(vertex_array);
+    glDrawArrays(GL_TRIANGLES, 0, 36);
+}
 
-    GLint texture_position_location = glGetAttribLocation(program, "texture_position");
-    glVertexAttribPointer(texture_position_location, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void *)(3 * sizeof(float)));
-    glEnableVertexAttribArray(texture_position_location);
+// Game
+class Game {
+    public:
+        GLFWwindow *window;
+        PerspectiveCamera *camera;
+        Vector3 velocity;
+        Shader *shader;
+        std::vector<Cube *> cubes;
 
-    // Load texture
-    GLuint crate_texture;
-    glGenTextures(1, &crate_texture);
-    glBindTexture(GL_TEXTURE_2D, crate_texture);
+        bool move_forward = false;
+        bool move_left = false;
+        bool move_right = false;
+        bool move_backward = false;
 
-    int crate_width, crate_height, crate_channels;
-    unsigned char *crate_data = stbi_load("assets/images/crate.jpg", &crate_width, &crate_height, &crate_channels, 0);
-    if (crate_data) {
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, crate_width, crate_height, 0, GL_RGB, GL_UNSIGNED_BYTE, crate_data);
-        glGenerateMipmap(GL_TEXTURE_2D);
-        stbi_image_free(crate_data);
-    } else {
-        std::cerr << "[ERROR] Can't load crate image" << std::endl;
-        glfwTerminate();
-        return EXIT_FAILURE;
+        bool wireframe_mode = false;
+
+        Game();
+
+        void update(float delta);
+        void render();
+        void start();
+};
+
+// Work around ugly
+void framebuffer_size_callback(GLFWwindow *window, int width, int height) {
+    Game *game = (Game *)glfwGetWindowUserPointer(window);
+
+    game->camera->aspect = (float)width / height;
+    game->camera->updateMatrix();
+
+    glViewport(0, 0, width, height);
+}
+
+void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods) {
+    (void)scancode;
+    (void)mods;
+    Game *game = (Game *)glfwGetWindowUserPointer(window);
+
+    if (action == GLFW_PRESS) {
+        if (key == GLFW_KEY_W || key == GLFW_KEY_UP) {
+            game->move_forward = true;
+        }
+        if (key == GLFW_KEY_A || key == GLFW_KEY_LEFT) {
+            game->move_left = true;
+        }
+        if (key == GLFW_KEY_D || key == GLFW_KEY_RIGHT) {
+            game->move_right = true;
+        }
+        if (key == GLFW_KEY_S || key == GLFW_KEY_DOWN) {
+            game->move_backward = true;
+        }
     }
 
-    Vector3 camera = { 0, 0, -10 };
-    Vector3 velocity = { 0, 0, 0 };
+    if (action == GLFW_RELEASE) {
+        if (key == GLFW_KEY_Y) {
+            game->wireframe_mode = !game->wireframe_mode;
+            glPolygonMode(GL_FRONT_AND_BACK, game->wireframe_mode ? GL_LINE : GL_FILL);
+        }
 
-    float lastFrame = 0.0f;
+        if (key == GLFW_KEY_W || key == GLFW_KEY_UP) {
+            game->move_forward = false;
+        }
+        if (key == GLFW_KEY_A || key == GLFW_KEY_LEFT) {
+            game->move_left = false;
+        }
+        if (key == GLFW_KEY_D || key == GLFW_KEY_RIGHT) {
+            game->move_right = false;
+        }
+        if (key == GLFW_KEY_S || key == GLFW_KEY_DOWN) {
+            game->move_backward = false;
+        }
+    }
+}
 
-    // Game loop
+Game::Game() {
+    // Init glfw
+    if (!glfwInit()) {
+        std::cerr << "[ERROR] Can't init glfw" << std::endl;
+        exit(EXIT_FAILURE);
+    }
+
+    // Use OpenGL 3.3 core profile
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
+
+    // Create window
+    window = glfwCreateWindow(1280, 720, "VroemVroem", nullptr, nullptr);
+    if (!window) {
+        std::cerr << "[ERROR] Can't create glfw window" << std::endl;
+        glfwTerminate();
+        exit(EXIT_FAILURE);
+    }
+    glfwSetWindowCenter(window);
+    glfwSetWindowSizeLimits(window, 640, 480, GLFW_DONT_CARE, GLFW_DONT_CARE);
+    glfwMakeContextCurrent(window);
+    glfwSwapInterval(1);
+
+    glfwSetWindowUserPointer(window, this);
+    glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
+    glfwSetKeyCallback(window, key_callback);
+
+    // Load OpenGL context
+    if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
+        std::cerr << "[ERROR] Glad can't load OpenGL context" << std::endl;
+        glfwTerminate();
+        exit(EXIT_FAILURE);
+    }
+    glEnable(GL_DEPTH_TEST);
+
+    #ifdef DEBUG
+    std::cout << "[INFO] Using OpenGL " << GLVersion.major << "."  << GLVersion.minor << " context" << std::endl;
+    #endif
+
+    // Create camera
+    int window_width, window_height;
+    glfwGetFramebufferSize(window, &window_width, &window_height);
+    camera = new PerspectiveCamera(75, (float)window_width / window_height, 0.1, 500);
+    camera->position.z = -100;
+    camera->updateMatrix();
+    velocity = { 0, 0, 0 };
+
+    // Load shader
+    Cube::init();
+    shader = new Shader("assets/shaders/basic.vert", "assets/shaders/basic.frag");
+
+    // Load texture
+    Texture crate_texture("assets/images/crate.jpg");
+
+    // Create cubes
+    for (int i = 0; i < 1000; i++) {
+        Cube *cube = new Cube();
+        cube->position.x = (random() - 0.5) * 300;
+        cube->position.y = (random() - 0.5) * 300;
+        cube->position.z = (random() - 0.5) * 300;
+        cube->rotation.x = (random() - 0.5) * 2 * M_PI;
+        cube->rotation.y = (random() - 0.5) * 2 * M_PI;
+        cube->rotation.z = (random() - 0.5) * 2 * M_PI;
+        cube->scale.x = random() * 4 + 1;
+        cube->scale.y = random() * 4 + 1;
+        cube->scale.z = random() * 4 + 1;
+        cube->updateMatrix();
+        cube->texture = &crate_texture;
+        cubes.push_back(cube);
+    }
+}
+
+void Game::update(float delta) {
+    // Update player camera
+    velocity.z -= velocity.z * 10 * delta;
+    velocity.x -= velocity.x * 10 * delta;
+
+    float speed = 7.5 * delta;
+
+    if (move_forward) {
+        velocity.z += speed;
+    }
+    if (move_left) {
+        velocity.x -= speed / 2;
+    }
+    if (move_right) {
+        velocity.x += speed / 2;
+    }
+    if (move_backward) {
+        velocity.z -= speed;
+    }
+
+    camera->position += velocity;
+    camera->updateMatrix();
+
+    // Rotate cubes
+    for (Cube *cube : cubes) {
+        cube->rotation.x += 0.5 * delta;
+        cube->rotation.y += 0.5 * delta;
+        cube->updateMatrix();
+    }
+}
+
+void Game::render() {
+    glClearColor(0.53, 0.8, 0.92, 1);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    glUseProgram(shader->program);
+
+    for (Cube *cube : cubes) {
+        cube->render(camera, shader);
+    }
+}
+
+void Game::start() {
+    double lastTime;
     while (!glfwWindowShouldClose(window)) {
-        // Calculate delta
-        float currentFrame = glfwGetTime();
-        float delta = currentFrame - lastFrame;
-        lastFrame = currentFrame;
+        double time = glfwGetTime();
+        float delta = (float)(time - lastTime);
+        lastTime = time;
 
-        // Update player camera
-        velocity.z -= velocity.z * 10 * delta;
-        velocity.x -= velocity.x * 10 * delta;
+        update(delta);
 
-        auto speed = 3 * delta;
+        render();
 
-        if (move_forward) {
-            velocity.z += speed;
-        }
-        if (move_left) {
-            velocity.x -= speed / 2;
-        }
-        if (move_right) {
-            velocity.x += speed / 2;
-        }
-        if (move_backward) {
-            velocity.z -= speed;
-        }
-
-        camera += velocity;
-
-        // Set viewport
-        int width, height;
-        glfwGetFramebufferSize(window, &width, &height);
-        glViewport(0, 0, width, height);
-
-        // Clear and enable depth test
-        glPolygonMode(GL_FRONT_AND_BACK, wireframe_mode ? GL_LINE : GL_FILL);
-        glClearColor(0.53, 0.8, 0.92, 1);
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-        // Use program
-        glUseProgram(program);
-
-        // Generate projection
-        mat4x4 projection;
-        mat4x4_identity(projection);
-        mat4x4_perspective(projection, 75, (float)width / height, 0.1, 400);
-
-        mat4x4 view;
-        mat4x4_identity(view);
-        mat4x4_translate(view, camera.x, camera.y, camera.z);
-
-        glBindTexture(GL_TEXTURE_2D, crate_texture);
-        glBindVertexArray(vertex_array);
-
-        for (unsigned int i = 0; i < sizeof(cubePositions) / sizeof(Vector3); i++) {
-            // Set matrix
-            mat4x4 model;
-            mat4x4_translate(model, cubePositions[i].x, cubePositions[i].y, cubePositions[i].z);
-            mat4x4_rotate_X(model, model, (float)glfwGetTime() + 20 * i);
-            mat4x4_rotate_Y(model, model, (float)glfwGetTime() + 20 * i);
-
-            mat4x4 matrix;
-            mat4x4_mul(matrix, view, model);
-            mat4x4_mul(matrix, projection, matrix);
-            glUniformMatrix4fv(matrix_location, 1, GL_FALSE, (const GLfloat *)matrix);
-
-            // glDrawElements(GL_TRIANGLES, sizeof(indices), GL_UNSIGNED_INT, 0);
-            glDrawArrays(GL_TRIANGLES, 0, 36);
-        }
-
-        // Render frame
         glfwSwapBuffers(window);
         glfwPollEvents();
     }
 
     glfwTerminate();
+}
+
+int main() {
+    Game game;
+    game.start();
     return EXIT_SUCCESS;
 }
