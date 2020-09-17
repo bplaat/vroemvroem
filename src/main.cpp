@@ -1,6 +1,7 @@
 // VroemVroem - A 3D Highway simulator school project
 // Made by Bastiaan van der Plaat (https://bastiaan.ml/)
 
+#include "main.hpp"
 #include <iostream>
 #include <vector>
 #define _USE_MATH_DEFINES
@@ -8,36 +9,18 @@
 #include <ctime>
 #include "glad.h"
 #include <GLFW/glfw3.h>
-#include "utils.hpp"
 #include "math.hpp"
 #include "renderer.hpp"
+#include "utils.hpp"
 
 // Game
-class Game {
-    public:
-        GLFWwindow *window;
-        PerspectiveCamera *camera;
-        Vector3 velocity;
-        Shader *shader;
-        std::vector<Cube *> cubes;
 
-        bool move_forward = false;
-        bool move_left = false;
-        bool move_right = false;
-        bool move_backward = false;
+// Work around ugly I have to put these functions in the game class
 
-        bool wireframe_mode = false;
-
-        Game();
-
-        void update(float delta);
-        void render();
-        void start();
-};
-
-// Work around ugly
 void framebuffer_size_callback(GLFWwindow *window, int width, int height) {
     Game *game = (Game *)glfwGetWindowUserPointer(window);
+    game->width = width;
+    game->height = height;
 
     game->camera->aspect = (float)width / height;
     game->camera->updateMatrix();
@@ -66,6 +49,24 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
     }
 
     if (action == GLFW_RELEASE) {
+        if (key == GLFW_KEY_F11) {
+            GLFWmonitor *primary_monitor = glfwGetPrimaryMonitor();
+            const GLFWvidmode *primary_screen = glfwGetVideoMode(primary_monitor);
+
+            if (!game->fullscreen_mode) {
+                game->fullscreen_mode = true;
+                glfwSetWindowMonitor(window, primary_monitor, 0, 0, primary_screen->width, primary_screen->height, GLFW_DONT_CARE);
+            } else {
+                game->fullscreen_mode = false;
+                glfwSetWindowMonitor(window, nullptr, (primary_screen->width - GAME_WIDTH) / 2, (primary_screen->height - GAME_HEIGHT) / 2, GAME_WIDTH, GAME_HEIGHT, GLFW_DONT_CARE);
+            }
+        }
+
+        if (key == GLFW_KEY_ESCAPE && game->cursor_locked) {
+            game->cursor_locked = false;
+            glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+        }
+
         if (key == GLFW_KEY_Y) {
             game->wireframe_mode = !game->wireframe_mode;
             glPolygonMode(GL_FRONT_AND_BACK, game->wireframe_mode ? GL_LINE : GL_FILL);
@@ -86,9 +87,50 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
     }
 }
 
+void mouse_button_callback(GLFWwindow* window, int button, int action, int mods) {
+    (void)action;
+    (void)mods;
+    Game *game = (Game *)glfwGetWindowUserPointer(window);
+
+    if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS && !game->cursor_locked) {
+        game->cursor_locked = true;
+        glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+    }
+}
+
+// Temp / working on variables
+float lastX = 1280 / 2, lastY = 720 / 2;
+float yaw;
+float pitch;
+
+void cursor_position_callback(GLFWwindow* window, double xpos, double ypos) {
+    Game *game = (Game *)glfwGetWindowUserPointer(window);
+
+    if (game->cursor_locked) {
+        float xoffset = xpos - lastX;
+        float yoffset = lastY - ypos;
+        lastX = xpos;
+        lastY = ypos;
+
+        float sensitivity = 0.002;
+        xoffset *= sensitivity;
+        yoffset *= sensitivity;
+
+        yaw += xoffset;
+        pitch += yoffset;
+
+        if (pitch > 89.0f) pitch = 89.0f;
+        if (pitch < -89.0f)  pitch = -89.0f;
+
+        game->camera->rotation.x = cos(yaw) * cos(pitch);
+        game->camera->rotation.y = sin(pitch);
+        game->camera->rotation.z = sin(yaw);
+    }
+}
+
 Game::Game() {
     // Init random number generator
-    seed = time(NULL);
+    seed = time(nullptr);
 
     // Init glfw
     if (!glfwInit()) {
@@ -103,13 +145,19 @@ Game::Game() {
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 
     // Create window
-    window = glfwCreateWindow(1280, 720, "VroemVroem", nullptr, nullptr);
+    width = GAME_WIDTH;
+    height = GAME_HEIGHT;
+    window = glfwCreateWindow(width, height, GAME_TITLE, nullptr, nullptr);
     if (!window) {
         std::cerr << "[ERROR] Can't create glfw window" << std::endl;
         glfwTerminate();
         exit(EXIT_FAILURE);
     }
-    glfwSetWindowCenter(window);
+
+    GLFWmonitor *primary_monitor = glfwGetPrimaryMonitor();
+    const GLFWvidmode *primary_screen = glfwGetVideoMode(primary_monitor);
+    glfwSetWindowPos(window, (primary_screen->width - width) / 2, (primary_screen->height - height) / 2);
+
     glfwSetWindowSizeLimits(window, 640, 480, GLFW_DONT_CARE, GLFW_DONT_CARE);
     glfwMakeContextCurrent(window);
     glfwSwapInterval(1);
@@ -117,6 +165,8 @@ Game::Game() {
     glfwSetWindowUserPointer(window, this);
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
     glfwSetKeyCallback(window, key_callback);
+    glfwSetMouseButtonCallback(window, mouse_button_callback);
+    glfwSetCursorPosCallback(window, cursor_position_callback);
 
     // Load OpenGL context
     if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {

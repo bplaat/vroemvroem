@@ -2,12 +2,10 @@
 
 #pragma once
 
-#include <GLFW/glfw3.h>
+#include <iostream>
 
 extern uint64_t seed;
 
 double random();
 
 char *file_read(const char *path);
-
-bool glfwSetWindowCenter(GLFWwindow *window);

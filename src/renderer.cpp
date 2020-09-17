@@ -21,7 +21,7 @@ Shader::Shader(const char *vertex_path, const char *fragment_path) {
     char infoLog[512];
     glGetShaderiv(vertex_shader, GL_COMPILE_STATUS, &success);
     if (!success) {
-        glGetShaderInfoLog(vertex_shader, sizeof(infoLog), NULL, infoLog);
+        glGetShaderInfoLog(vertex_shader, sizeof(infoLog), nullptr, infoLog);
         std::cerr << "[ERROR] Error compiling vertex shader: " << infoLog << std::endl;
         glfwTerminate();
         exit(EXIT_FAILURE);
@@ -30,13 +30,13 @@ Shader::Shader(const char *vertex_path, const char *fragment_path) {
     // Compile fragment shader
     char *fragment_shader_text = file_read(fragment_path);
     GLuint fragment_shader = glCreateShader(GL_FRAGMENT_SHADER);
-    glShaderSource(fragment_shader, 1, &fragment_shader_text, NULL);
+    glShaderSource(fragment_shader, 1, &fragment_shader_text, nullptr);
     glCompileShader(fragment_shader);
     delete fragment_shader_text;
 
     glGetShaderiv(fragment_shader, GL_COMPILE_STATUS, &success);
     if (!success) {
-        glGetShaderInfoLog(fragment_shader, sizeof(infoLog), NULL, infoLog);
+        glGetShaderInfoLog(fragment_shader, sizeof(infoLog), nullptr, infoLog);
         std::cerr << "[ERROR] Error compiling fragment shader: " << infoLog << std::endl;
         glfwTerminate();
         exit(EXIT_FAILURE);
@@ -50,7 +50,7 @@ Shader::Shader(const char *vertex_path, const char *fragment_path) {
 
     glGetProgramiv(program, GL_LINK_STATUS, &success);
     if(!success) {
-        glGetProgramInfoLog(program, sizeof(infoLog), NULL, infoLog);
+        glGetProgramInfoLog(program, sizeof(infoLog), nullptr, infoLog);
         std::cerr << "[ERROR] Error linking program: " << infoLog << std::endl;
         glfwTerminate();
         exit(EXIT_FAILURE);
@@ -101,19 +101,18 @@ Object3D::Object3D() {
 void Object3D::updateMatrix() {
     matrix.translate(&position);
 
-    Matrix4 other_matrix;
+    Matrix4 temp_matrix;
+    temp_matrix.rotateX(rotation.x);
+    matrix *= temp_matrix;
 
-    other_matrix.rotateX(rotation.x);
-    matrix *= other_matrix;
+    temp_matrix.rotateY(rotation.y);
+    matrix *= temp_matrix;
 
-    other_matrix.rotateY(rotation.y);
-    matrix *= other_matrix;
+    temp_matrix.rotateZ(rotation.z);
+    matrix *= temp_matrix;
 
-    other_matrix.rotateZ(rotation.z);
-    matrix *= other_matrix;
-
-    other_matrix.scale(&scale);
-    matrix *= other_matrix;
+    temp_matrix.scale(&scale);
+    matrix *= temp_matrix;
 }
 
 // PerspectiveCamera
@@ -122,9 +121,24 @@ PerspectiveCamera::PerspectiveCamera(float fov, float aspect, float near, float 
 
 void PerspectiveCamera::updateMatrix() {
     matrix.perspective(fov, aspect, near, far);
-    Matrix4 other_matrix;
-    other_matrix.translate(&position);
-    matrix *= other_matrix;
+
+    Matrix4 view;
+    view.translate(&position);
+
+    Matrix4 temp_matrix;
+    temp_matrix.rotateX(rotation.x);
+    view *= temp_matrix;
+
+    temp_matrix.rotateY(rotation.y);
+    view *= temp_matrix;
+
+    temp_matrix.rotateZ(rotation.z);
+    view *= temp_matrix;
+
+    temp_matrix.scale(&scale);
+    view *= temp_matrix;
+
+    matrix *= view;
 }
 
 // Cube
@@ -191,9 +205,9 @@ Cube::Cube() {
 }
 
 void Cube::render(PerspectiveCamera *camera, Shader *shader) {
-    Matrix4 other_matrix = camera->matrix;
-    other_matrix *= matrix;
-    glUniformMatrix4fv(shader->matrix_uniform, 1, GL_FALSE, (const GLfloat *)other_matrix.data);
+    Matrix4 temp_matrix = camera->matrix;
+    temp_matrix *= matrix;
+    glUniformMatrix4fv(shader->matrix_uniform, 1, GL_FALSE, (const GLfloat *)temp_matrix.data);
 
     glBindTexture(GL_TEXTURE_2D, texture->texture);
     glBindVertexArray(vertex_array);
