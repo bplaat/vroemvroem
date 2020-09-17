@@ -6,6 +6,7 @@
 #include <vector>
 #define _USE_MATH_DEFINES
 #include <cmath>
+#include <ctime>
 
 // Load glad to load modern OpenGL context
 #include "glad.h"
@@ -18,15 +19,17 @@
 #define STBI_ONLY_JPEG
 #include "stb_image.h"
 
-// Load linmat for simple matrix calculation
-// I'm going to write my own C++ Matrix lib in the future
-#include "linmat.h"
-
 // Utils
 
 // Read file to string
 char *file_read(const char *path) {
     FILE *file = fopen(path, "rb");
+    if (file == NULL) {
+        std::cerr << "[ERROR] Error reading file: " << path << std::endl;
+        glfwTerminate();
+        exit(EXIT_FAILURE);
+    }
+
     fseek(file, 0, SEEK_END);
     size_t file_size = ftell(file);
     fseek(file, 0, SEEK_SET);
@@ -37,7 +40,7 @@ char *file_read(const char *path) {
     return contents;
 }
 
-int seed = 1;
+int seed;
 double random() {
     double x = sin(seed++) * 10000;
     return x - floor(x);
@@ -46,10 +49,10 @@ double random() {
 #define MAX(X, Y) (((X) > (Y)) ? (X) : (Y))
 #define MIN(X, Y) (((X) < (Y)) ? (X) : (Y))
 
-bool glfwSetWindowCenter( GLFWwindow * window )
-{
-    if( !window )
+bool glfwSetWindowCenter(GLFWwindow *window) {
+    if (!window) {
         return false;
+    }
 
     int sx = 0, sy = 0;
     int px = 0, py = 0;
@@ -58,67 +61,66 @@ bool glfwSetWindowCenter( GLFWwindow * window )
     int best_area = 0;
     int final_x = 0, final_y = 0;
 
-    glfwGetWindowSize( window , &sx, &sy );
-    glfwGetWindowPos( window , &px, &py );
+    glfwGetWindowSize(window, &sx, &sy);
+    glfwGetWindowPos(window, &px, &py);
 
     // Iterate throug all monitors
-    GLFWmonitor ** m = glfwGetMonitors( &monitor_count );
-    if( !m )
+    GLFWmonitor **m = glfwGetMonitors(&monitor_count);
+    if (!m) {
         return false;
+    }
 
-    for( int j = 0; j < monitor_count ; ++j )
-    {
-
-        glfwGetMonitorPos( m[j] , &mx, &my );
-        const GLFWvidmode * mode = glfwGetVideoMode( m[j] );
-        if( !mode )
+    for (int j = 0; j < monitor_count; j++) {
+        glfwGetMonitorPos(m[j], &mx, &my);
+        const GLFWvidmode *mode = glfwGetVideoMode(m[j]);
+        if (!mode) {
             continue;
+        }
 
         // Get intersection of two rectangles - screen and window
-        int minX = MAX( mx , px );
-        int minY = MAX( my , py );
+        int minX = MAX(mx, px);
+        int minY = MAX(my, py);
 
-        int maxX = MIN( mx+mode->width , px+sx );
-        int maxY = MIN( my+mode->height , py+sy );
+        int maxX = MIN(mx + mode->width, px + sx);
+        int maxY = MIN(my + mode->height, py + sy);
 
         // Calculate area of the intersection
-        int area = MAX( maxX - minX , 0 ) * MAX( maxY - minY , 0 );
+        int area = MAX(maxX - minX, 0) * MAX(maxY - minY, 0);
 
         // If its bigger than actual (window covers more space on this monitor)
-        if( area > best_area )
-        {
+        if (area > best_area) {
             // Calculate proper position in this monitor
-            final_x = mx + (mode->width-sx)/2;
-            final_y = my + (mode->height-sy)/2;
+            final_x = mx + (mode->width - sx) / 2;
+            final_y = my + (mode->height - sy) / 2;
 
             best_area = area;
         }
-
     }
 
     // We found something
-    if( best_area )
-        glfwSetWindowPos( window , final_x , final_y );
+    if (best_area) {
+        glfwSetWindowPos(window, final_x, final_y);
+    }
 
     // Something is wrong - current window has NOT any intersection with any monitors. Move it to the default one.
-    else
-    {
-        GLFWmonitor * primary = glfwGetPrimaryMonitor( );
-        if( primary )
-        {
-            const GLFWvidmode * desktop = glfwGetVideoMode( primary );
-
-            if( desktop )
-                glfwSetWindowPos( window , (desktop->width-sx)/2 , (desktop->height-sy)/2 );
-            else
+    else {
+        GLFWmonitor *primary = glfwGetPrimaryMonitor();
+        if (primary) {
+            const GLFWvidmode *desktop = glfwGetVideoMode(primary);
+            if (desktop) {
+                glfwSetWindowPos(window, (desktop->width - sx) / 2, (desktop->height - sy) / 2);
+            } else {
                 return false;
-        }
-        else
+            }
+        } else {
             return false;
+        }
     }
 
     return true;
 }
+
+// Math
 
 // Vector 3
 struct Vector3 {
@@ -126,13 +128,113 @@ struct Vector3 {
     float y;
     float z;
 
-    Vector3& operator+=(const Vector3& a);
+    Vector3 &operator +=(const Vector3 &b);
 };
 
-Vector3& Vector3::operator+=(const Vector3& a) {
-    x += a.x;
-    y += a.y;
-    z += a.z;
+Vector3 &Vector3::operator +=(const Vector3 &b) {
+    x += b.x;
+    y += b.y;
+    z += b.z;
+    return *this;
+}
+
+// Matrix4
+struct Matrix4 {
+    float data[4][4];
+
+    void identity();
+    void perspective(float fov, float aspect, float near, float far);
+    void translate(Vector3 *vector);
+    void rotateX(float x);
+    void rotateY(float y);
+    void rotateZ(float z);
+    void scale(Vector3 *vector);
+
+    Matrix4 &operator *=(const Matrix4 &b);
+};
+
+void Matrix4::identity() {
+    for (int y = 0; y < 4; y++) {
+        for (int x = 0; x < 4; x++) {
+            data[y][x] = x == y;
+        }
+    }
+}
+
+void Matrix4::perspective(float fov, float aspect, float near, float far) {
+    identity();
+    float f = tan(M_PI * 0.5 - 0.5 * fov);
+    float r = 1 / (near - far);
+    data[0][0] = f / aspect;
+    data[1][1] = f;
+    data[2][2] = (near + far) * r;
+    data[2][3] = -1;
+    data[3][2] = near * far * r * 2;
+    data[3][3] = 0;
+}
+
+void Matrix4::translate(Vector3 *vector) {
+    identity();
+    data[3][0] = vector->x;
+    data[3][1] = vector->y;
+    data[3][2] = vector->z;
+}
+
+void Matrix4::rotateX(float x) {
+    identity();
+    float c = cos(x);
+    float s = sin(x);
+    data[1][1] = c;
+    data[1][2] = s;
+    data[2][1] = -s;
+    data[2][2] = c;
+}
+
+void Matrix4::rotateY(float y) {
+    identity();
+    float c = cos(y);
+    float s = sin(y);
+    data[0][0] = c;
+    data[0][2] = -s;
+    data[2][0] = s;
+    data[2][2] = c;
+}
+
+void Matrix4::rotateZ(float z) {
+    identity();
+    float c = cos(z);
+    float s = sin(z);
+    data[0][0] = c;
+    data[0][1] = s;
+    data[1][0] = -s;
+    data[1][1] = c;
+}
+
+void Matrix4::scale(Vector3 *vector) {
+    identity();
+    data[0][0] = vector->x;
+    data[1][1] = vector->y;
+    data[2][2] = vector->z;
+}
+
+Matrix4 &Matrix4::operator *=(const Matrix4 &b) {
+    Matrix4 matrix;
+
+    for (int y = 0; y < 4; y++) {
+        for (int x = 0; x < 4; x++) {
+            matrix.data[y][x] = 0;
+            for (int i = 0; i < 4; i++) {
+                matrix.data[y][x] += data[i][x] * b.data[y][i];
+            }
+        }
+    }
+
+    for (int y = 0; y < 4; y++) {
+        for (int x = 0; x < 4; x++) {
+            data[y][x] = matrix.data[y][x];
+        }
+    }
+
     return *this;
 }
 
@@ -221,18 +323,18 @@ class Texture {
 
 Texture::Texture(const char *texture_path) {
     int32_t texture_width, texture_height, texture_channels;
-    uint8_t *texture_data = stbi_load("assets/images/crate.jpg", &texture_width, &texture_height, &texture_channels, 0);
-    if (texture_data) {
-        glGenTextures(1, &texture);
-        glBindTexture(GL_TEXTURE_2D, texture);
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, texture_width, texture_height, 0, GL_RGB, GL_UNSIGNED_BYTE, texture_data);
-        glGenerateMipmap(GL_TEXTURE_2D);
-        stbi_image_free(texture_data);
-    } else {
+    uint8_t *texture_data = stbi_load("assets/images/crate.jpg", &texture_width, &texture_height, &texture_channels, STBI_rgb);
+    if (!texture_data) {
         std::cerr << "[ERROR] Can't load texture: " << texture_path << std::endl;
         glfwTerminate();
         exit(EXIT_FAILURE);
     }
+
+    glGenTextures(1, &texture);
+    glBindTexture(GL_TEXTURE_2D, texture);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, texture_width, texture_height, 0, GL_RGB, GL_UNSIGNED_BYTE, texture_data);
+    glGenerateMipmap(GL_TEXTURE_2D);
+    stbi_image_free(texture_data);
 }
 
 // Object3D
@@ -241,7 +343,7 @@ class Object3D {
         Vector3 position;
         Vector3 rotation;
         Vector3 scale;
-        mat4x4 matrix;
+        Matrix4 matrix;
 
         Object3D();
 
@@ -256,11 +358,21 @@ Object3D::Object3D() {
 }
 
 void Object3D::updateMatrix() {
-    mat4x4_translate(matrix, position.x, position.y, position.z);
-    mat4x4_rotate_X(matrix, matrix, rotation.x);
-    mat4x4_rotate_Y(matrix, matrix, rotation.y);
-    mat4x4_rotate_Z(matrix, matrix, rotation.z);
-    mat4x4_scale_aniso(matrix, matrix, scale.x, scale.y, scale.z);
+    matrix.translate(&position);
+
+    Matrix4 other_matrix;
+
+    other_matrix.rotateX(rotation.x);
+    matrix *= other_matrix;
+
+    other_matrix.rotateY(rotation.y);
+    matrix *= other_matrix;
+
+    other_matrix.rotateZ(rotation.z);
+    matrix *= other_matrix;
+
+    other_matrix.scale(&scale);
+    matrix *= other_matrix;
 }
 
 // PerspectiveCamera
@@ -280,8 +392,10 @@ PerspectiveCamera::PerspectiveCamera(float fov, float aspect, float near, float 
     : fov(fov), aspect(aspect), near(near), far(far) {}
 
 void PerspectiveCamera::updateMatrix() {
-    mat4x4_perspective(matrix, fov, aspect, near, far);
-    mat4x4_translate_in_place(matrix, position.x, position.y, position.z);
+    matrix.perspective(fov, aspect, near, far);
+    Matrix4 other_matrix;
+    other_matrix.translate(&position);
+    matrix *= other_matrix;
 }
 
 // Cube
@@ -309,47 +423,47 @@ void Cube::init() {
 
     float vertices[] = {
         // Vertex position, Texture position
-        -1, -1, -1,  0, 0,
-         1, -1, -1,  1, 0,
-         1,  1, -1,  1, 1,
-         1,  1, -1,  1, 1,
-        -1,  1, -1,  0, 1,
-        -1, -1, -1,  0, 0,
+        -0.5, -0.5, -0.5,  0, 0,
+        0.5, -0.5, -0.5,  1, 0,
+        0.5,  0.5, -0.5,  1, 1,
+        0.5,  0.5, -0.5,  1, 1,
+        -0.5,  0.5, -0.5,  0, 1,
+        -0.5, -0.5, -0.5,  0, 0,
 
-        -1, -1,  1,  0, 0,
-         1, -1,  1,  1, 0,
-         1,  1,  1,  1, 1,
-         1,  1,  1,  1, 1,
-        -1,  1,  1,  0, 1,
-        -1, -1,  1,  0, 0,
+        -0.5, -0.5,  0.5,  0, 0,
+        0.5, -0.5,  0.5,  1, 0,
+        0.5,  0.5,  0.5,  1, 1,
+        0.5,  0.5,  0.5,  1, 1,
+        -0.5,  0.5,  0.5,  0, 1,
+        -0.5, -0.5,  0.5,  0, 0,
 
-        -1,  1,  1,  1, 0,
-        -1,  1, -1,  1, 1,
-        -1, -1, -1,  0, 1,
-        -1, -1, -1,  0, 1,
-        -1, -1,  1,  0, 0,
-        -1,  1,  1,  1, 0,
+        -0.5,  0.5,  0.5,  1, 0,
+        -0.5,  0.5, -0.5,  1, 1,
+        -0.5, -0.5, -0.5,  0, 1,
+        -0.5, -0.5, -0.5,  0, 1,
+        -0.5, -0.5,  0.5,  0, 0,
+        -0.5,  0.5,  0.5,  1, 0,
 
-         1,  1,  1,  1, 0,
-         1,  1, -1,  1, 1,
-         1, -1, -1,  0, 1,
-         1, -1, -1,  0, 1,
-         1, -1,  1,  0, 0,
-         1,  1,  1,  1, 0,
+        0.5,  0.5,  0.5,  1, 0,
+        0.5,  0.5, -0.5,  1, 1,
+        0.5, -0.5, -0.5,  0, 1,
+        0.5, -0.5, -0.5,  0, 1,
+        0.5, -0.5,  0.5,  0, 0,
+        0.5,  0.5,  0.5,  1, 0,
 
-        -1, -1, -1,  0, 1,
-         1, -1, -1,  1, 1,
-         1, -1,  1,  1, 0,
-         1, -1,  1,  1, 0,
-        -1, -1,  1,  0, 0,
-        -1, -1, -1,  0, 1,
+        -0.5, -0.5, -0.5,  0, 1,
+        0.5, -0.5, -0.5,  1, 1,
+        0.5, -0.5,  0.5,  1, 0,
+        0.5, -0.5,  0.5,  1, 0,
+        -0.5, -0.5,  0.5,  0, 0,
+        -0.5, -0.5, -0.5,  0, 1,
 
-        -1,  1, -1,  0, 1,
-         1,  1, -1,  1, 1,
-         1,  1,  1,  1, 0,
-         1,  1,  1,  1, 0,
-        -1,  1,  1,  0, 0,
-        -1,  1, -1,  0, 1
+        -0.5,  0.5, -0.5,  0, 1,
+        0.5,  0.5, -0.5,  1, 1,
+        0.5,  0.5,  0.5,  1, 0,
+        0.5,  0.5,  0.5,  1, 0,
+        -0.5,  0.5,  0.5,  0, 0,
+        -0.5,  0.5, -0.5,  0, 1
     };
 
     glGenBuffers(1, &vertex_buffer);
@@ -362,9 +476,9 @@ Cube::Cube() {
 }
 
 void Cube::render(PerspectiveCamera *camera, Shader *shader) {
-    mat4x4 end_matrix;
-    mat4x4_mul(end_matrix, camera->matrix, matrix);
-    glUniformMatrix4fv(shader->matrix_uniform, 1, GL_FALSE, (const GLfloat *)end_matrix);
+    Matrix4 other_matrix = camera->matrix;
+    other_matrix *= matrix;
+    glUniformMatrix4fv(shader->matrix_uniform, 1, GL_FALSE, (const GLfloat *)other_matrix.data);
 
     glBindTexture(GL_TEXTURE_2D, texture->texture);
     glBindVertexArray(vertex_array);
@@ -446,6 +560,9 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 }
 
 Game::Game() {
+    // Init random number generator
+    seed = time(NULL);
+
     // Init glfw
     if (!glfwInit()) {
         std::cerr << "[ERROR] Can't init glfw" << std::endl;
@@ -489,7 +606,7 @@ Game::Game() {
     // Create camera
     int window_width, window_height;
     glfwGetFramebufferSize(window, &window_width, &window_height);
-    camera = new PerspectiveCamera(75, (float)window_width / window_height, 0.1, 500);
+    camera = new PerspectiveCamera(50, (float)window_width / window_height, 0.1, 1000);
     camera->position.z = -100;
     camera->updateMatrix();
     velocity = { 0, 0, 0 };
@@ -504,15 +621,15 @@ Game::Game() {
     // Create cubes
     for (int i = 0; i < 1000; i++) {
         Cube *cube = new Cube();
-        cube->position.x = (random() - 0.5) * 300;
-        cube->position.y = (random() - 0.5) * 300;
-        cube->position.z = (random() - 0.5) * 300;
+        cube->position.x = (random() - 0.5) * 250;
+        cube->position.y = (random() - 0.5) * 250;
+        cube->position.z = (random() - 0.5) * 250;
         cube->rotation.x = (random() - 0.5) * 2 * M_PI;
         cube->rotation.y = (random() - 0.5) * 2 * M_PI;
         cube->rotation.z = (random() - 0.5) * 2 * M_PI;
-        cube->scale.x = random() * 4 + 1;
-        cube->scale.y = random() * 4 + 1;
-        cube->scale.z = random() * 4 + 1;
+        cube->scale.x = random() * 9 + 1;
+        cube->scale.y = random() * 9 + 1;
+        cube->scale.z = random() * 9 + 1;
         cube->updateMatrix();
         cube->texture = &crate_texture;
         cubes.push_back(cube);
@@ -562,7 +679,7 @@ void Game::render() {
 }
 
 void Game::start() {
-    double lastTime;
+    double lastTime = 0;
     while (!glfwWindowShouldClose(window)) {
         double time = glfwGetTime();
         float delta = (float)(time - lastTime);
