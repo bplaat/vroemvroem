@@ -1,6 +1,5 @@
 # I still don't understand Make :( so I use this garbage...
 # This build script is written for Windows and the mingw suite
-# Currently the builds are not portable because they link to glfw and gcc c++ libs I think :(
 
 name="vroemvroem"
 version="0.1.0"
@@ -15,14 +14,14 @@ elif [ "$1" == "release" ]; then
         gcc -Os $release_flags -Iinclude -c $file -o target/release/$(basename $file .c).o
     done
 
-    # Can't optimize black texture loading bug :(
+    # Can't optimize because of black texture loading bug :(
     for file in src/*.cpp; do
         g++ -Iinclude -c $file -o target/release/$(basename $file .cpp).o
     done
 
     rm -f target/release/$name-v$version-x86_64.exe
 
-    g++ -s $(find target/release -name *.o) -lglfw3 -Wl,--subsystem,windows -o target/release/$name-v$version-x86_64.exe
+    g++ -s $(find target/release -name *.o)  -static -lglfw3 -lgdi32 -Wl,--subsystem,windows -o target/release/$name-v$version-x86_64.exe
 
     rm -r target/release/*.o
 

@@ -59,6 +59,7 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
             } else {
                 game->fullscreen_mode = false;
                 glfwSetWindowMonitor(window, nullptr, (primary_screen->width - GAME_WIDTH) / 2, (primary_screen->height - GAME_HEIGHT) / 2, GAME_WIDTH, GAME_HEIGHT, GLFW_DONT_CARE);
+                glfwRestoreWindow(window);
             }
         }
 
