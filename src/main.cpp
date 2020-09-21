@@ -130,8 +130,8 @@ void cursor_position_callback(GLFWwindow* window, double xpos, double ypos) {
 }
 
 Game::Game() {
-    // Init random number generator
-    seed = time(nullptr);
+    // Create a random number generator
+    Random random((uint64_t)time(nullptr));
 
     // Init glfw
     if (!glfwInit()) {
@@ -199,15 +199,15 @@ Game::Game() {
     // Create cubes
     for (int i = 0; i < 1000; i++) {
         Cube *cube = new Cube();
-        cube->position.x = (random() - 0.5) * 250;
-        cube->position.y = (random() - 0.5) * 250;
-        cube->position.z = (random() - 0.5) * 250;
-        cube->rotation.x = (random() - 0.5) * 2 * M_PI;
-        cube->rotation.y = (random() - 0.5) * 2 * M_PI;
-        cube->rotation.z = (random() - 0.5) * 2 * M_PI;
-        cube->scale.x = random() * 9 + 1;
-        cube->scale.y = random() * 9 + 1;
-        cube->scale.z = random() * 9 + 1;
+        cube->position.x = (random.random() - 0.5) * 250;
+        cube->position.y = (random.random() - 0.5) * 250;
+        cube->position.z = (random.random() - 0.5) * 250;
+        cube->rotation.x = (random.random() - 0.5) * 2 * M_PI;
+        cube->rotation.y = (random.random() - 0.5) * 2 * M_PI;
+        cube->rotation.z = (random.random() - 0.5) * 2 * M_PI;
+        cube->scale.x = random.random() * 9 + 1;
+        cube->scale.y = random.random() * 9 + 1;
+        cube->scale.z = random.random() * 9 + 1;
         cube->updateMatrix();
         cube->texture = &crate_texture;
         cubes.push_back(cube);

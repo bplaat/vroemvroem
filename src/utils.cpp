@@ -6,9 +6,9 @@
 #include <GLFW/glfw3.h>
 
 // Random
-uint64_t seed;
+Random::Random(uint64_t seed) : seed(seed) {}
 
-double random() {
+double Random::random() {
     double x = sin(seed++) * 10000;
     return x - floor(x);
 }

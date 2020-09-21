@@ -14,14 +14,20 @@ elif [ "$1" == "release" ]; then
         gcc -Os $release_flags -Iinclude -c $file -o target/release/$(basename $file .c).o
     done
 
-    # Can't optimize because of black texture loading bug :(
+    # Can't optimize because of black texture loading bug on Windows :(
     for file in src/*.cpp; do
         g++ -Iinclude -c $file -o target/release/$(basename $file .cpp).o
     done
 
-    rm -f target/release/$name-v$version-x86_64.exe
+    if [ "$(uname -s)" == "Linux" ]; then
+        rm -f target/release/$name-v$version-x86_64
 
-    g++ -s $(find target/release -name *.o)  -static -lglfw3 -lgdi32 -Wl,--subsystem,windows -o target/release/$name-v$version-x86_64.exe
+        g++ -s $(find target/release -name *.o) -lglfw -ldl -o target/release/$name-v$version-x86_64
+    else
+        rm -f target/release/$name-v$version-x86_64.exe
+
+        g++ -s $(find target/release -name *.o) -static -lglfw3 -lgdi32 -Wl,--subsystem,windows -o target/release/$name-v$version-x86_64.exe
+    fi
 
     rm -r target/release/*.o
 
@@ -45,9 +51,17 @@ else
         fi
     done
 
-    rm -f target/debug/$name-v$version-x86_64-debug.exe
+    if [ "$(uname -s)" == "Linux" ]; then
+        rm -f target/debug/$name-v$version-x86_64-debug
 
-    g++ $(find target/debug -name *.o) -lglfw3 -o target/debug/$name-v$version-x86_64-debug.exe
+        g++ $(find target/debug -name *.o) -lglfw -ldl -o target/debug/$name-v$version-x86_64-debug
 
-    ./target/debug/$name-v$version-x86_64-debug.exe
+        ./target/debug/$name-v$version-x86_64-debug
+    else
+        rm -f target/debug/$name-v$version-x86_64-debug.exe
+
+        g++ $(find target/debug -name *.o) -lglfw3 -o target/debug/$name-v$version-x86_64-debug.exe
+
+        ./target/debug/$name-v$version-x86_64-debug.exe
+    fi
 fi

@@ -4,8 +4,13 @@
 
 #include <iostream>
 
-extern uint64_t seed;
+class Random {
+    public:
+        uint64_t seed;
 
-double random();
+        Random(uint64_t seed);
+
+        double random();
+};
 
 char *file_read(const char *path);
