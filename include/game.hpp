@@ -16,6 +16,7 @@ class Game {
         SDL_Renderer *renderer;
         uint64_t time;
         bool running = true;
+        SDL_Texture *terrainImages[6];
 
         Game();
 
