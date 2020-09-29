@@ -3,6 +3,8 @@
 #include "camera.hpp"
 #include <SDL2/SDL.h>
 
+const int Camera::ZOOM_LEVELS[] = { 8, 16, 24, 32, 48, 64, 80, 96, 112, 128 };
+
 Camera::Camera(float x, float y, int zoomLevel)
     : x(x), y(y), zoomLevel(zoomLevel)
 {

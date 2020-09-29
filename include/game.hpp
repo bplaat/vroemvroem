@@ -22,7 +22,7 @@ class Game {
         SDL_Renderer *renderer;
         uint64_t time;
 
-        Image *terrainImages[6];
+        Image *terrainImages[12];
         World *world;
         Camera *camera;
 
