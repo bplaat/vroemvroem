@@ -3,7 +3,7 @@
 #include "game.hpp"
 #include <iostream>
 #include <SDL2/SDL.h>
-#include "utils.hpp"
+#include "image.hpp"
 
 Game::Game() {
     // Create window
@@ -15,22 +15,44 @@ Game::Game() {
     SDL_SetWindowMinimumSize(window, minWidth, minHeight);
 
     // Create renderer
-    renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
+    renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
     if (renderer == nullptr) {
         std::cerr << "[ERROR] Can't create the SDL renderer: " << SDL_GetError();
         exit(EXIT_FAILURE);
     }
 
     // Load terrain images
-    terrainImages[0] = LoadImage(renderer, "assets/images/grass1.png", false);
-    terrainImages[1] = LoadImage(renderer, "assets/images/grass2.png", false);
-    terrainImages[2] = LoadImage(renderer, "assets/images/dirt1.png", false);
-    terrainImages[3] = LoadImage(renderer, "assets/images/dirt2.png", false);
-    terrainImages[4] = LoadImage(renderer, "assets/images/sand1.png", false);
-    terrainImages[5] = LoadImage(renderer, "assets/images/sand2.png", false);
+    terrainImages[0] = new Image(renderer, "assets/images/grass1.png", false);
+    terrainImages[1] = new Image(renderer, "assets/images/grass2.png", false);
+    terrainImages[2] = new Image(renderer, "assets/images/dirt1.png", false);
+    terrainImages[3] = new Image(renderer, "assets/images/dirt2.png", false);
+    terrainImages[4] = new Image(renderer, "assets/images/sand1.png", false);
+    terrainImages[5] = new Image(renderer, "assets/images/sand2.png", false);
+
+    // Generate world
+    world = new World(this, 128, 64, 0);
+
+    camera = new Camera(0, 0, 1);
+}
+
+Game::~Game() {
+    for (int i = 0; i < (int)(sizeof(terrainImages) / sizeof(Image *)); i++) {
+        delete terrainImages[i];
+    }
+
+    delete world;
+
+    delete camera;
+
+    SDL_DestroyRenderer(renderer);
+
+    SDL_DestroyWindow(window);
 }
 
 void Game::handleEvent(SDL_Event *event) {
+    // Send all events to camera
+    camera->handleEvent(event);
+
     // Handle key down events
     if (event->type == SDL_KEYUP) {
         if (event->key.keysym.sym == SDLK_F11) {
@@ -58,16 +80,14 @@ void Game::handleEvent(SDL_Event *event) {
     }
 }
 
-void Game::update(double delta) {
-    (void)delta;
-
-    // Game update code
+void Game::update(float delta) {
+    world->update(delta);
 }
 
 void Game::draw() {
     SDL_RenderClear(renderer);
 
-    // Game drawing code
+    world->draw(renderer, camera);
 
     SDL_RenderPresent(renderer);
 }
@@ -95,13 +115,4 @@ void Game::start() {
         // Update old time
         oldTime = time;
     }
-
-    // When closing delete all game objects
-    for (int i = 0; i < (int)(sizeof(terrainImages) / sizeof(SDL_Texture *)); i++) {
-        SDL_DestroyTexture(terrainImages[i]);
-    }
-
-    SDL_DestroyRenderer(renderer);
-
-    SDL_DestroyWindow(window);
 }

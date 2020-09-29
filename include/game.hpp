@@ -3,6 +3,10 @@
 #pragma once
 
 #include <SDL2/SDL.h>
+class World;
+#include "image.hpp"
+#include "world.hpp"
+#include "camera.hpp"
 
 class Game {
     public:
@@ -12,17 +16,23 @@ class Game {
         int minWidth = 640;
         int minHeight = 480;
         bool fullscreen = false;
+        bool running = true;
+
         SDL_Window *window;
         SDL_Renderer *renderer;
         uint64_t time;
-        bool running = true;
-        SDL_Texture *terrainImages[6];
+
+        Image *terrainImages[6];
+        World *world;
+        Camera *camera;
 
         Game();
 
+        ~Game();
+
         void handleEvent(SDL_Event *event);
 
-        void update(double delta);
+        void update(float delta);
 
         void draw();
 
