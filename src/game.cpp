@@ -3,6 +3,7 @@
 #include "game.hpp"
 #include <iostream>
 #include <SDL2/SDL.h>
+#include "resources.hpp"
 #include "image.hpp"
 
 Game::Game() {
@@ -14,6 +15,10 @@ Game::Game() {
     }
     SDL_SetWindowMinimumSize(window, minWidth, minHeight);
 
+    #if DEBUG
+        SDL_MaximizeWindow(window);
+    #endif
+
     // Create renderer
     renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
     if (renderer == nullptr) {
@@ -21,31 +26,49 @@ Game::Game() {
         exit(EXIT_FAILURE);
     }
 
+    // Load resources into singleton
+    Resources *resources = Resources::getInstance();
+
     // Load terrain images
-    terrainImages[0] = new Image(renderer, "assets/images/terrain/water_deep.png", false);
-    terrainImages[1] = new Image(renderer, "assets/images/terrain/water.png", false);
-    terrainImages[2] = new Image(renderer, "assets/images/terrain/sand1.png", false);
-    terrainImages[3] = new Image(renderer, "assets/images/terrain/sand2.png", false);
-    terrainImages[4] = new Image(renderer, "assets/images/terrain/grass1.png", false);
-    terrainImages[5] = new Image(renderer, "assets/images/terrain/grass2.png", false);
-    terrainImages[6] = new Image(renderer, "assets/images/terrain/dirt1.png", false);
-    terrainImages[7] = new Image(renderer, "assets/images/terrain/dirt2.png", false);
-    terrainImages[8] = new Image(renderer, "assets/images/terrain/stone1.png", false);
-    terrainImages[9] = new Image(renderer, "assets/images/terrain/stone1.png", false);
-    terrainImages[10] = new Image(renderer, "assets/images/terrain/snow1.png", false);
-    terrainImages[11] = new Image(renderer, "assets/images/terrain/snow2.png", false);
+    /*  0 */ resources->terrainImages.push_back(new Image(renderer, "assets/images/terrain/water_deep.png", false));
+    /*  1 */ resources->terrainImages.push_back(new Image(renderer, "assets/images/terrain/water.png", false));
+    /*  2 */ resources->terrainImages.push_back(new Image(renderer, "assets/images/terrain/sand1.png", false));
+    /*  3 */ resources->terrainImages.push_back(new Image(renderer, "assets/images/terrain/sand2.png", false));
+    /*  4 */ resources->terrainImages.push_back(new Image(renderer, "assets/images/terrain/grass1.png", false));
+    /*  5 */ resources->terrainImages.push_back(new Image(renderer, "assets/images/terrain/grass2.png", false));
+    /*  6 */ resources->terrainImages.push_back(new Image(renderer, "assets/images/terrain/dirt1.png", false));
+    /*  7 */ resources->terrainImages.push_back(new Image(renderer, "assets/images/terrain/dirt2.png", false));
+    /*  8 */ resources->terrainImages.push_back(new Image(renderer, "assets/images/terrain/stone1.png", false));
+    /*  9 */ resources->terrainImages.push_back(new Image(renderer, "assets/images/terrain/stone1.png", false));
+    /* 10 */ resources->terrainImages.push_back(new Image(renderer, "assets/images/terrain/snow1.png", false));
+    /* 11 */ resources->terrainImages.push_back(new Image(renderer, "assets/images/terrain/snow2.png", false));
+
+    // Load object images
+    /*  0 */ resources->objectImages.push_back(new Image(renderer, "assets/images/objects/bush1.png", true));
+    /*  1 */ resources->objectImages.push_back(new Image(renderer, "assets/images/objects/bush2.png", true));
+    /*  2 */ resources->objectImages.push_back(new Image(renderer, "assets/images/objects/tree1.png", true));
+    /*  3 */ resources->objectImages.push_back(new Image(renderer, "assets/images/objects/tree2.png", true));
+    /*  4 */ resources->objectImages.push_back(new Image(renderer, "assets/images/objects/tree3.png", true));
+    /*  5 */ resources->objectImages.push_back(new Image(renderer, "assets/images/objects/tree4.png", true));
+    /*  6 */ resources->objectImages.push_back(new Image(renderer, "assets/images/objects/trunk1.png", true));
+    /*  7 */ resources->objectImages.push_back(new Image(renderer, "assets/images/objects/trunk2.png", true));
+    /*  8 */ resources->objectImages.push_back(new Image(renderer, "assets/images/objects/rock1.png", true));
+    /*  9 */ resources->objectImages.push_back(new Image(renderer, "assets/images/objects/rock2.png", true));
+    /* 10 */ resources->objectImages.push_back(new Image(renderer, "assets/images/objects/house1.png", true));
+    /* 11 */ resources->objectImages.push_back(new Image(renderer, "assets/images/objects/house2.png", true));
+    /* 12 */ resources->objectImages.push_back(new Image(renderer, "assets/images/objects/house3.png", true));
+    /* 13 */ resources->objectImages.push_back(new Image(renderer, "assets/images/objects/house4.png", true));
 
     // Generate world
+    int seed = 1;
     int width = 512;
     int height = 512;
-    world = new World(this, width, height, 0);
-    camera = new Camera(width / 2, height / 2, 2);
+    world = new World(width, height, seed);
+    camera = new Camera(world, (float)width / 2, (float)height / 2, 2);
 }
 
 Game::~Game() {
-    for (int i = 0; i < (int)(sizeof(terrainImages) / sizeof(Image *)); i++) {
-        delete terrainImages[i];
-    }
+    delete Resources::getInstance();
 
     delete world;
 

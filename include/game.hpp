@@ -2,9 +2,8 @@
 
 #pragma once
 
+#include <vector>
 #include <SDL2/SDL.h>
-class World;
-#include "image.hpp"
 #include "world.hpp"
 #include "camera.hpp"
 
@@ -22,7 +21,6 @@ class Game {
         SDL_Renderer *renderer;
         uint64_t time;
 
-        Image *terrainImages[12];
         World *world;
         Camera *camera;
 

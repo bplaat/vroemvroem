@@ -14,4 +14,6 @@ class Image {
         Image(SDL_Renderer *renderer, const char *path, bool transparent);
 
         ~Image();
+
+        void draw(SDL_Renderer *renderer, SDL_Rect *destinationRect, SDL_Rect *sourceRect);
 };

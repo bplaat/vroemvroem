@@ -47,7 +47,7 @@ else
         object="target/debug/$(basename $file .cpp).o"
         if [[ $file -nt $object ]]; then
             rm -f $object
-            g++ -DDEBUG -Wall -Wextra -Wpedantic --std=c++11 -Iinclude -c $file -o $object
+            g++ -g -DDEBUG -Wall -Wextra -Wpedantic --std=c++11 -Iinclude -c $file -o $object
         fi
     done
 
@@ -58,6 +58,10 @@ else
 
         g++ $(find target/debug -name *.o) -lsdl2 -o target/debug/$name-v$version-$platform-debug.exe
 
-        ./target/debug/$name-v$version-$platform-debug.exe
+        if [ "$1" == "debug" ]; then
+            gdb ./target/debug/$name-v$version-$platform-debug.exe
+        else
+            ./target/debug/$name-v$version-$platform-debug.exe
+        fi
     fi
 fi

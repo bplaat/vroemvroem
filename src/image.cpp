@@ -58,3 +58,7 @@ Image::Image(SDL_Renderer *renderer, const char *path, bool transparent)
 Image::~Image() {
     SDL_DestroyTexture(texture);
 }
+
+void Image::draw(SDL_Renderer *renderer, SDL_Rect *destinationRect, SDL_Rect *sourceRect) {
+    SDL_RenderCopy(renderer, texture, sourceRect, destinationRect);
+}

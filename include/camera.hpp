@@ -3,10 +3,14 @@
 #pragma once
 
 #include <SDL2/SDL.h>
+class Camera;
+#include "world.hpp"
 
 class Camera {
     public:
         static const int ZOOM_LEVELS[];
+
+        World *world;
 
         float x;
         float y;
@@ -28,7 +32,7 @@ class Camera {
         int zoomLevel;
         int tileSize;
 
-        Camera(float x, float y, int zoomLevel);
+        Camera(World *world, float x, float y, int zoomLevel);
 
         void handleEvent(SDL_Event *event);
 };

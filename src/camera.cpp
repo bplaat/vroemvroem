@@ -2,12 +2,14 @@
 
 #include "camera.hpp"
 #include <SDL2/SDL.h>
+#include "world.hpp"
 
 const int Camera::ZOOM_LEVELS[] = { 8, 16, 24, 32, 48, 64, 80, 96, 112, 128 };
 
-Camera::Camera(float x, float y, int zoomLevel)
-    : x(x), y(y), zoomLevel(zoomLevel)
+Camera::Camera(World *world, float x, float y, int zoomLevel)
+    : world(world), x(x), y(y), zoomLevel(zoomLevel)
 {
+    drag.enabled = false;
     tileSize = ZOOM_LEVELS[zoomLevel];
 }
 
@@ -24,6 +26,11 @@ void Camera::handleEvent(SDL_Event *event) {
         if (drag.enabled) {
             x = drag.oldCamera.x - ((float)(event->button.x - drag.mouse.x) / tileSize);
             y = drag.oldCamera.y - ((float)(event->button.y - drag.mouse.y) / tileSize);
+
+            if (x < 0) x = 0;
+            if (y < 0) y = 0;
+            if (x > world->width) x = world->width;
+            if (y > world->height) y = world->height;
         }
     }
 
@@ -34,7 +41,6 @@ void Camera::handleEvent(SDL_Event *event) {
     }
 
     if (event->type == SDL_MOUSEWHEEL) {
-
         if (event->wheel.y < 0) {
             if (zoomLevel > 0) {
                 tileSize = ZOOM_LEVELS[--zoomLevel];

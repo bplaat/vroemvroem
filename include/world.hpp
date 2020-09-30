@@ -2,21 +2,24 @@
 
 #pragma once
 
+#include <vector>
 #include <SDL2/SDL.h>
-class Game;
-#include "game.hpp"
 #include "random.hpp"
+#include "object.hpp"
+class World;
 #include "camera.hpp"
 
 class World {
     public:
-        Game *game;
         Random *random;
         int width;
         int height;
-        uint8_t *terrain;
 
-        World(Game *game, int width, int height, int seed);
+        uint8_t *terrainMap;
+        uint8_t *objectMap;
+        std::vector<Object *> objects;
+
+        World(int width, int height, int seed);
 
         ~World();
 
