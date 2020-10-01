@@ -15,5 +15,7 @@ class Font {
 
         ~Font();
 
+        int measure(const char *text, int size);
+
         SDL_Texture *render(SDL_Renderer *renderer, const char *text, int size, uint32_t color);
 };

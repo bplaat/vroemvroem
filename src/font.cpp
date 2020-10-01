@@ -31,12 +31,12 @@ Font::~Font() {
     delete buffer;
 }
 
-SDL_Texture *Font::render(SDL_Renderer *renderer, const char *text, int size, uint32_t color) {
+int Font::measure(const char *text, int size) {
     int length = strlen(text);
-
     float scale = stbtt_ScaleForPixelHeight(&fontInfo, size);
+    int xpadding = size / 4;
 
-    int width = 0;
+    int width = xpadding * 2;
     for (int i = 0; i < length; i++) {
         int advance, lsb;
         stbtt_GetCodepointHMetrics(&fontInfo, text[i], &advance, &lsb);
@@ -48,6 +48,15 @@ SDL_Texture *Font::render(SDL_Renderer *renderer, const char *text, int size, ui
         }
     }
 
+    return width;
+}
+
+SDL_Texture *Font::render(SDL_Renderer *renderer, const char *text, int size, uint32_t color) {
+    int length = strlen(text);
+    float scale = stbtt_ScaleForPixelHeight(&fontInfo, size);
+    int xpadding = size / 4;
+
+    int width = measure(text, size);
     int height = size;
 
     uint8_t *bitmap = new uint8_t[height * width];
@@ -55,7 +64,7 @@ SDL_Texture *Font::render(SDL_Renderer *renderer, const char *text, int size, ui
         bitmap[i] = 0;
     }
 
-    int x = 0;
+    int x = xpadding;
 
     int ascent, descent, lineGap;
     stbtt_GetFontVMetrics(&fontInfo, &ascent, &descent, &lineGap);
@@ -103,10 +112,10 @@ SDL_Texture *Font::render(SDL_Renderer *renderer, const char *text, int size, ui
     for (int y = 0; y < height; y++) {
         for (int x = 0; x < width; x++) {
             int pos = (y * width + x) * 4;
-            coloredBitmap[pos] = bitmap[y * width + x] * (color & 0xff) / 255;
-            coloredBitmap[pos + 1] = bitmap[y * width + x] * ((color >> 8) & 0xff) / 255;
-            coloredBitmap[pos + 2] = bitmap[y * width + x] * ((color >> 16) & 0xff) / 255;
-            coloredBitmap[pos + 3] = bitmap[y * width + x] == 0 ? 0 : 255;
+            coloredBitmap[pos] = color & 0xff;
+            coloredBitmap[pos + 1] = (color >> 8) & 0xff;
+            coloredBitmap[pos + 2] = (color >> 16) & 0xff;
+            coloredBitmap[pos + 3] = bitmap[y * width + x];
         }
     }
 
@@ -125,6 +134,8 @@ SDL_Texture *Font::render(SDL_Renderer *renderer, const char *text, int size, ui
     }
 
     SDL_FreeSurface(surface);
+
+    delete coloredBitmap;
 
     return texture;
 }

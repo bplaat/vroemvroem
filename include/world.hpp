@@ -6,6 +6,7 @@
 #include <SDL2/SDL.h>
 #include "random.hpp"
 #include "object.hpp"
+#include "city.hpp"
 class World;
 #include "camera.hpp"
 
@@ -18,6 +19,7 @@ class World {
         uint8_t *terrainMap;
         uint8_t *objectMap;
         std::vector<Object *> objects;
+        std::vector<City *> cities;
 
         World(int width, int height, int seed);
 
