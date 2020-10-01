@@ -14,5 +14,7 @@ class City {
 
         City(int id, const char *name, int x, int y, int population);
 
+        ~City();
+
         static const char *randomName(Random *random);
 };

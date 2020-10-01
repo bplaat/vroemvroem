@@ -119,6 +119,8 @@ SDL_Texture *Font::render(SDL_Renderer *renderer, const char *text, int size, ui
         }
     }
 
+    delete bitmap;
+
     SDL_Surface *surface = SDL_CreateRGBSurfaceFrom((void *)coloredBitmap, width, height, 32, 4 * width,
         0x000000ff, 0x0000ff00, 0x00ff0000, 0xff000000);
 

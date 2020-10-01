@@ -7,6 +7,10 @@
 City::City(int id, const char *name, int x, int y, int population)
     : id(id), name(name), x(x), y(y), population(population) {}
 
+City::~City() {
+    delete name;
+}
+
 const char *City::randomName(Random *random) {
     const char *consonants = "bcdfghjklmnpqrstvwxyz";
     int consonantsLength = strlen(consonants);
