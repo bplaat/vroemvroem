@@ -24,21 +24,9 @@ Image::Image(SDL_Renderer *renderer, const char *path, bool transparent)
         pitch = 3 * width;
     }
 
-    uint32_t rmask, gmask, bmask, amask;
-    #if SDL_BYTEORDER == SDL_BIG_ENDIAN
-        int shift = transparent ? 0 : 8;
-        rmask = 0xff000000 >> shift;
-        gmask = 0x00ff0000 >> shift;
-        bmask = 0x0000ff00 >> shift;
-        amask = 0x000000ff >> shift;
-    #else
-        rmask = 0x000000ff;
-        gmask = 0x0000ff00;
-        bmask = 0x00ff0000;
-        amask = transparent ? 0xff000000 : 0;
-    #endif
+    SDL_Surface *surface = SDL_CreateRGBSurfaceFrom((void *)data, width, height, depth, pitch,
+        0x000000ff, 0x0000ff00, 0x00ff0000, transparent ? 0xff000000 : 0);
 
-    SDL_Surface *surface = SDL_CreateRGBSurfaceFrom((void *)data, width, height, depth, pitch, rmask, gmask, bmask, amask);
     if (surface == nullptr) {
         std::cerr << "[ERROR] Can't create SDL surface: " << SDL_GetError() << std::endl;
         exit(EXIT_FAILURE);

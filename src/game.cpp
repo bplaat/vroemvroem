@@ -29,6 +29,12 @@ Game::Game() {
     // Load resources into singleton
     Resources *resources = Resources::getInstance();
 
+    // Load font
+    resources->font = new Font("assets/fonts/Bangers-Regular.ttf");
+
+    // Render some text
+    textTexture = resources->font->render(renderer, "The quick brown fox jumps over the lazy dog! 0123456789", 72, 0x000000ff);
+
     // Load terrain images
     /*  0 */ resources->terrainImages.push_back(new Image(renderer, "assets/images/terrain/water_deep.png", false));
     /*  1 */ resources->terrainImages.push_back(new Image(renderer, "assets/images/terrain/water.png", false));
@@ -68,12 +74,6 @@ Game::Game() {
 }
 
 Game::~Game() {
-    delete Resources::getInstance();
-
-    delete world;
-
-    delete camera;
-
     SDL_DestroyRenderer(renderer);
 
     SDL_DestroyWindow(window);
@@ -115,9 +115,17 @@ void Game::update(float delta) {
 }
 
 void Game::draw() {
+    SDL_SetRenderDrawColor(renderer, 17, 17, 17, 255);
     SDL_RenderClear(renderer);
 
     world->draw(renderer, camera);
+
+    SDL_Rect textRect = { 32, 32, 0, 0 };
+    SDL_QueryTexture(textTexture, nullptr, nullptr, &textRect.w, &textRect.h);
+    SDL_RenderCopy(renderer, textTexture, nullptr, &textRect);
+
+    SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
+    SDL_RenderDrawRect(renderer, &textRect);
 
     SDL_RenderPresent(renderer);
 }

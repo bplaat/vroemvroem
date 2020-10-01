@@ -1,4 +1,4 @@
-// VroemVroem - stb image library loader
+// VroemVroem - stb_image library loader
 
 // A wrapper c file to load the stb_image single header library once
 #define STB_IMAGE_IMPLEMENTATION

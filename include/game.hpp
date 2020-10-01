@@ -24,6 +24,8 @@ class Game {
         World *world;
         Camera *camera;
 
+        SDL_Texture *textTexture;
+
         Game();
 
         ~Game();
