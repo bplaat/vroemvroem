@@ -2,7 +2,6 @@
 A highway simulator school project
 
 ## Things to do:
-- Add houses
 - Add random roads (free from grid so a polyline thing)
 - Add cars
 - Add car drive AI

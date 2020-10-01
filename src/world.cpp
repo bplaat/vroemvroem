@@ -94,6 +94,40 @@ World::World(int width, int height, int seed) : width(width), height(height) {
 
         cities.push_back(new City(cities.size(), City::randomName(random), x, y, 0));
     }
+
+    // Generate houses
+    for (City *city : cities) {
+        int target_population = random->randomInt(50, random->randomInt(100, random->randomInt(200, random->randomInt(300, 1000))));
+        int size = ceil(target_population / random->randomInt(20, random->randomInt(20, 30)));
+        for (int j = 0; j < ceil(target_population / 4); j++) {
+            int x;
+            int y;
+            int attempt = 0;
+            bool foundPosition = false;
+            do {
+                x = city->x + random->randomInt(-size, size);
+                y = city->y + random->randomInt(-size, size);
+
+                if (
+                    x >= 0 && y >= 0 && x < width && y < height &&
+                    terrainMap[y * width +x] > 2 &&
+                    objectMap[y * width + x] == 0
+                ) {
+                    foundPosition = true;
+                    break;
+                }
+
+                attempt++;
+            } while (!foundPosition && attempt == 10);
+
+            if (foundPosition) {
+                Object *house = new Object(objects.size(), random->randomInt(10, 13), x, y);
+                objects.push_back(house);
+                objectMap[y * width + x] = 1;
+                city->population += random->randomInt(2, 6);
+            }
+        }
+    }
 }
 
 World::~World() {
