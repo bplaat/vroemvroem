@@ -1,5 +1,4 @@
 # I still don't understand Make :( so I use this garbage...
-# This build script is written for Windows and the mingw suite
 
 name="vroemvroem"
 version="0.1.0"
@@ -20,7 +19,9 @@ elif [ "$1" == "release" ]; then
     done
 
     if [ "$(uname -s)" == "Linux" ]; then
-        echo "Comming soon..."
+        rm -f target/release/$name-v$version-$platform
+
+        g++ -s $(find target/release -name *.o) -lSDL2 -o target/release/$name-v$version-$platform
     else
         rm -f target/release/$name-v$version-$platform.exe
 
@@ -52,7 +53,17 @@ else
     done
 
     if [ "$(uname -s)" == "Linux" ]; then
-        echo "Comming soon..."
+        rm -f target/debug/$name-v$version-$platform-debug
+
+        g++ $(find target/debug -name *.o) -lSDL2 -o target/debug/$name-v$version-$platform-debug
+
+        if [ "$1" == "debug" ]; then
+            gdb ./target/debug/$name-v$version-$platform-debug
+        elif [ "$1" == "mem" ]; then
+            valgrind --leak-check=full --show-reachable=yes --show-leak-kinds=all --error-limit=no --log-file=valgrind.txt ./target/debug/$name-v$version-$platform-debug
+        else
+            ./target/debug/$name-v$version-$platform-debug
+        fi
     else
         rm -f target/debug/$name-v$version-$platform-debug.exe
 
@@ -60,6 +71,8 @@ else
 
         if [ "$1" == "debug" ]; then
             gdb ./target/debug/$name-v$version-$platform-debug.exe
+        elif [ "$1" == "mem" ]; then
+            drmemory -- ./target/debug/$name-v$version-$platform-debug.exe
         else
             ./target/debug/$name-v$version-$platform-debug.exe
         fi
