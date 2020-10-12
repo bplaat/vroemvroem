@@ -2,8 +2,10 @@
 
 #pragma once
 
-#include <vector>
+#include <memory>
 #include <SDL2/SDL.h>
+#include "utils.hpp"
+#include "resources.hpp"
 #include "world.hpp"
 #include "camera.hpp"
 
@@ -15,20 +17,18 @@ class Game {
         int minWidth = 640;
         int minHeight = 480;
         bool fullscreen = false;
-        bool running = true;
-
-        SDL_Window *window;
-        SDL_Renderer *renderer;
         uint64_t time;
+        bool running = false;
 
-        World *world;
-        Camera *camera;
+        std::unique_ptr<SDL_Window, SDL_deleter> window;
+        std::shared_ptr<SDL_Renderer> renderer;
+        std::shared_ptr<Resources> resources;
+        std::shared_ptr<World> world;
+        std::unique_ptr<Camera> camera;
 
         Game();
 
-        ~Game();
-
-        void handleEvent(SDL_Event *event);
+        void handleEvent(const SDL_Event *event);
 
         void update(float delta);
 

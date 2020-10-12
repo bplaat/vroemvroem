@@ -2,20 +2,19 @@
 
 #pragma once
 
-#include <cstdint>
-#include "stb_truetype.h"
+#include <memory>
 #include <SDL2/SDL.h>
+#include "stb_truetype.h"
+#include "image.hpp"
 
 class Font {
     public:
-        uint8_t *buffer;
+        std::unique_ptr<uint8_t[]> fontBuffer;
         stbtt_fontinfo fontInfo;
 
         Font(const char *path);
 
-        ~Font();
+        int measure(const char *text, int textSize);
 
-        int measure(const char *text, int size);
-
-        SDL_Texture *render(SDL_Renderer *renderer, const char *text, int size, uint32_t color);
+        std::unique_ptr<Image> render(std::shared_ptr<SDL_Renderer> renderer, const char *text, int textSize, uint32_t textColor);
 };

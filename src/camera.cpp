@@ -1,19 +1,20 @@
 // VroemVroem - Camera Object
 
 #include "camera.hpp"
+#include <memory>
 #include <SDL2/SDL.h>
 #include "world.hpp"
 
 const int Camera::ZOOM_LEVELS[] = { 8, 16, 24, 32, 48, 64, 80, 96, 112, 128 };
 
-Camera::Camera(World *world, float x, float y, int zoomLevel)
+Camera::Camera(std::shared_ptr<World> world, float x, float y, int zoomLevel)
     : world(world), x(x), y(y), zoomLevel(zoomLevel)
 {
     drag.enabled = false;
     tileSize = ZOOM_LEVELS[zoomLevel];
 }
 
-void Camera::handleEvent(SDL_Event *event) {
+void Camera::handleEvent(const SDL_Event *event) {
     if (event->type == SDL_MOUSEBUTTONDOWN) {
         drag.enabled = true;
         drag.mouse.x = event->button.x;

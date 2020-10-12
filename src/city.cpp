@@ -1,33 +1,29 @@
 // VroemVroem - City Object
 
 #include "city.hpp"
-#include "random.hpp"
+#include <memory>
 #include <cstring>
+#include "random.hpp"
 
-City::City(int id, const char *name, int x, int y, int population)
-    : id(id), name(name), x(x), y(y), population(population) {}
+City::City(int id, std::unique_ptr<char[]> name, int x, int y, int population)
+    : id(id), name(std::move(name)), x(x), y(y), population(population) {}
 
-City::~City() {
-    delete name;
-}
-
-const char *City::randomName(Random *random) {
+std::unique_ptr<char[]> City::randomName(Random *random) {
     const char *consonants = "bcdfghjklmnpqrstvwxyz";
-    int consonantsLength = strlen(consonants);
-
+    size_t consonantsLength = strlen(consonants);
     const char *vowels = "aeiou";
-    int vowelsLength = strlen(vowels);
+    size_t vowelsLength = strlen(vowels);
 
-    int length = random->randomInt(2, 5) * 2;
+    int nameLength = random->randomInt(2, 5) * 2;
 
-    char *randomName = new char[length * 2 + 1];
-    int i = 0;
-    while (i < length) {
-        randomName[i] = consonants[random->randomInt(0, consonantsLength - 1)];
-        randomName[i + 1] = vowels[random->randomInt(0, vowelsLength - 1)];
-        i += 2;
+    auto randomName = std::make_unique<char[]>(nameLength);
+    int pos = 0;
+    while (pos < nameLength) {
+        randomName[pos] = consonants[random->randomInt(0, consonantsLength - 1)];
+        randomName[pos + 1] = vowels[random->randomInt(0, vowelsLength - 1)];
+        pos += 2;
     }
-    randomName[i] = 0;
+    randomName[pos] = '\0';
 
     return randomName;
 }

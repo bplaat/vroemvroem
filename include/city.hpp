@@ -2,19 +2,18 @@
 
 #pragma once
 
+#include <memory>
 #include "random.hpp"
 
 class City {
     public:
         int id;
-        const char *name;
+        std::unique_ptr<char[]> name;
         int x;
         int y;
         int population;
 
-        City(int id, const char *name, int x, int y, int population);
+        City(int id, std::unique_ptr<char[]> name, int x, int y, int population);
 
-        ~City();
-
-        static const char *randomName(Random *random);
+        static std::unique_ptr<char[]> randomName(Random *random);
 };

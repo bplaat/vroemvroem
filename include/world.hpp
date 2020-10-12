@@ -3,7 +3,9 @@
 #pragma once
 
 #include <vector>
+#include <memory>
 #include <SDL2/SDL.h>
+#include "resources.hpp"
 #include "random.hpp"
 #include "object.hpp"
 #include "city.hpp"
@@ -12,20 +14,19 @@ class World;
 
 class World {
     public:
-        Random *random;
+        std::shared_ptr<SDL_Renderer> renderer;
+        std::shared_ptr<Resources> resources;
         int width;
         int height;
+        std::unique_ptr<Random> random;
+        std::unique_ptr<uint8_t[]> terrainMap;
+        std::unique_ptr<uint8_t[]> objectMap;
+        std::vector<std::unique_ptr<Object>> objects;
+        std::vector<std::unique_ptr<City>> cities;
 
-        uint8_t *terrainMap;
-        uint8_t *objectMap;
-        std::vector<Object *> objects;
-        std::vector<City *> cities;
-
-        World(int width, int height, int seed);
-
-        ~World();
+        World(std::shared_ptr<SDL_Renderer> renderer, std::shared_ptr<Resources> resources, int width, int height, int seed);
 
         void update(float delta);
 
-        void draw(SDL_Renderer *renderer, Camera *camera);
+        void draw(const Camera *camera);
 };

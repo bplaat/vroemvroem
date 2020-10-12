@@ -34,6 +34,8 @@ elif [ "$1" == "release" ]; then
     cp -r assets target/release
 
 else
+    clear
+
     mkdir -p target/debug
 
     for file in src/*.c; do
@@ -48,7 +50,7 @@ else
         object="target/debug/$(basename $file .cpp).o"
         if [[ $file -nt $object ]]; then
             rm -f $object
-            g++ -g -DDEBUG -Wall -Wextra -Wpedantic --std=c++11 -Iinclude -c $file -o $object
+            g++ -g -DDEBUG -Wall -Wextra -Wpedantic --std=c++17 -Iinclude -c $file -o $object
         fi
     done
 
@@ -60,7 +62,7 @@ else
         if [ "$1" == "debug" ]; then
             gdb ./target/debug/$name-v$version-$platform-debug
         elif [ "$1" == "mem" ]; then
-            valgrind --leak-check=full --show-reachable=yes --show-leak-kinds=all --error-limit=no --log-file=valgrind.txt ./target/debug/$name-v$version-$platform-debug
+            valgrind ./target/debug/$name-v$version-$platform-debug
         else
             ./target/debug/$name-v$version-$platform-debug
         fi

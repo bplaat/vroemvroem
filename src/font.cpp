@@ -3,41 +3,37 @@
 #include "font.hpp"
 #include <iostream>
 #include <cstring>
-#include "stb_truetype.h"
+#include <memory>
 #include <SDL2/SDL.h>
+#include "stb_truetype.h"
+#include "image.hpp"
 
 Font::Font(const char *path) {
-    FILE *file = fopen(path, "rb");
-    if (file == nullptr) {
+    FILE *fontFile = fopen(path, "rb");
+    if (!fontFile) {
         std::cerr << "[ERROR] Can't read font file: " << path << std::endl;
         exit(EXIT_FAILURE);
     }
 
-    fseek(file, 0, SEEK_END);
-    long file_size = ftell(file);
-    fseek(file, 0, SEEK_SET);
-    buffer = new uint8_t[file_size + 1];
-    fread(buffer, 1, file_size, file);
-    buffer[file_size] = 0;
-    fclose(file);
+    fseek(fontFile, 0, SEEK_END);
+    size_t fontFileSize = ftell(fontFile);
+    fseek(fontFile, 0, SEEK_SET);
+    fontBuffer = std::make_unique<uint8_t[]>(fontFileSize + 1);
+    fread(fontBuffer.get(), 1, fontFileSize, fontFile);
+    fontBuffer[fontFileSize] = 0;
+    fclose(fontFile);
 
-    if (stbtt_InitFont(&fontInfo, buffer, stbtt_GetFontOffsetForIndex(buffer, 0)) == 0) {
+    if (stbtt_InitFont(&fontInfo, fontBuffer.get(), stbtt_GetFontOffsetForIndex(fontBuffer.get(), 0)) == 0) {
         std::cerr << "[ERROR] Can't load font: " << path << std::endl;
         exit(EXIT_FAILURE);
     }
 }
 
-Font::~Font() {
-    delete buffer;
-}
-
-int Font::measure(const char *text, int size) {
-    int length = strlen(text);
-    float scale = stbtt_ScaleForPixelHeight(&fontInfo, size);
-    int xpadding = size / 4;
-
+int Font::measure(const char *text, int textSize) {
+    float scale = stbtt_ScaleForPixelHeight(&fontInfo, textSize);
+    int xpadding = textSize / 4;
     int width = xpadding * 2;
-    for (int i = 0; i < length; i++) {
+    for (size_t i = 0; i < strlen(text); i++) {
         int advance, lsb;
         stbtt_GetCodepointHMetrics(&fontInfo, text[i], &advance, &lsb);
 
@@ -47,19 +43,17 @@ int Font::measure(const char *text, int size) {
             width += stbtt_GetCodepointKernAdvance(&fontInfo, text[i], text[i + 1]) * scale;
         }
     }
-
     return width;
 }
 
-SDL_Texture *Font::render(SDL_Renderer *renderer, const char *text, int size, uint32_t color) {
-    int length = strlen(text);
-    float scale = stbtt_ScaleForPixelHeight(&fontInfo, size);
-    int xpadding = size / 4;
+std::unique_ptr<Image> Font::render(std::shared_ptr<SDL_Renderer> renderer, const char *text, int textSize, uint32_t textColor) {
+    float scale = stbtt_ScaleForPixelHeight(&fontInfo, textSize);
+    int xpadding = textSize / 4;
 
-    int width = measure(text, size);
-    int height = size;
+    int width = measure(text, textSize);
+    int height = textSize;
 
-    uint8_t *bitmap = new uint8_t[height * width];
+    auto bitmap = std::make_unique<uint8_t[]>(height * width);
     for (int i = 0; i < height * width; i++) {
         bitmap[i] = 0;
     }
@@ -72,7 +66,7 @@ SDL_Texture *Font::render(SDL_Renderer *renderer, const char *text, int size, ui
     ascent = roundf(ascent * scale);
     descent = roundf(descent * scale);
 
-    for (int i = 0; i < length; i++) {
+    for (size_t i = 0; i < strlen(text); i++) {
         int advance, lsb;
         stbtt_GetCodepointHMetrics(&fontInfo, text[i], &advance, &lsb);
 
@@ -82,7 +76,7 @@ SDL_Texture *Font::render(SDL_Renderer *renderer, const char *text, int size, ui
         int y = ascent + c_y1;
 
         int characterWidth, characterHeight;
-        uint8_t *characterBitmap = stbtt_GetCodepointBitmap(&fontInfo, 0, scale, text[i], &characterWidth, &characterHeight, 0,0);
+        auto characterBitmap = std::unique_ptr<uint8_t[]>(stbtt_GetCodepointBitmap(&fontInfo, 0, scale, text[i], &characterWidth, &characterHeight, 0, 0));
 
         for (int cy = 0; cy < characterHeight; cy++) {
             for (int cx = 0; cx < characterWidth; cx++) {
@@ -95,8 +89,6 @@ SDL_Texture *Font::render(SDL_Renderer *renderer, const char *text, int size, ui
             }
         }
 
-        stbtt_FreeBitmap(characterBitmap, nullptr);
-
         x += advance * scale;
 
         if (text[i + 1]) {
@@ -104,40 +96,16 @@ SDL_Texture *Font::render(SDL_Renderer *renderer, const char *text, int size, ui
         }
     }
 
-    uint8_t *coloredBitmap = new uint8_t[height * width * 4];
-    for (int i = 0; i < height * width * 4; i++) {
-        coloredBitmap[i] = 0;
-    }
-
+    auto coloredBitmap = std::make_unique<uint8_t[]>(height * width * 4);
     for (int y = 0; y < height; y++) {
         for (int x = 0; x < width; x++) {
             int pos = (y * width + x) * 4;
-            coloredBitmap[pos] = color & 0xff;
-            coloredBitmap[pos + 1] = (color >> 8) & 0xff;
-            coloredBitmap[pos + 2] = (color >> 16) & 0xff;
+            coloredBitmap[pos] = textColor & 0xff;
+            coloredBitmap[pos + 1] = (textColor >> 8) & 0xff;
+            coloredBitmap[pos + 2] = (textColor >> 16) & 0xff;
             coloredBitmap[pos + 3] = bitmap[y * width + x];
         }
     }
 
-    delete bitmap;
-
-    SDL_Surface *surface = SDL_CreateRGBSurfaceFrom((void *)coloredBitmap, width, height, 32, 4 * width,
-        0x000000ff, 0x0000ff00, 0x00ff0000, 0xff000000);
-
-    if (surface == nullptr) {
-        std::cerr << "[ERROR] Can't create SDL surface: " << SDL_GetError() << std::endl;
-        exit(EXIT_FAILURE);
-    }
-
-    SDL_Texture *texture = SDL_CreateTextureFromSurface(renderer, surface);
-    if (texture == nullptr) {
-        std::cerr << "[ERROR] Can't create SDL texture: " << SDL_GetError() << std::endl;
-        exit(EXIT_FAILURE);
-    }
-
-    SDL_FreeSurface(surface);
-
-    delete coloredBitmap;
-
-    return texture;
+    return std::make_unique<Image>(renderer, width, height, true, coloredBitmap.get());
 }

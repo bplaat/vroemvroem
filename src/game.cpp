@@ -3,91 +3,45 @@
 #include "game.hpp"
 #include <iostream>
 #include <SDL2/SDL.h>
+#include "utils.hpp"
 #include "resources.hpp"
 #include "image.hpp"
 
 Game::Game() {
     // Create window
-    window = SDL_CreateWindow(title, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, width, height, SDL_WINDOW_RESIZABLE);
-    if (window == nullptr) {
+    window = std::unique_ptr<SDL_Window, SDL_deleter>(SDL_CreateWindow(title, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, width, height, SDL_WINDOW_RESIZABLE));
+    if (!window) {
         std::cerr << "[ERROR] Can't create the SDL window: " << SDL_GetError() << std::endl;
         exit(EXIT_FAILURE);
     }
 
-    SDL_SetWindowMinimumSize(window, minWidth, minHeight);
+    SDL_SetWindowMinimumSize(window.get(), minWidth, minHeight);
 
     #if DEBUG
-        SDL_MaximizeWindow(window);
+        SDL_MaximizeWindow(window.get());
     #endif
 
     // Create renderer
-    renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
-    if (renderer == nullptr) {
+    renderer = std::shared_ptr<SDL_Renderer>(SDL_CreateRenderer(window.get(), -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC), SDL_DestroyRenderer);
+    if (!renderer) {
         std::cerr << "[ERROR] Can't create the SDL renderer: " << SDL_GetError() << std::endl;
         exit(EXIT_FAILURE);
     }
 
-    // Load resources into singleton
-    Resources *resources = Resources::getInstance();
-
-    // Load font
-    resources->font = new Font("assets/fonts/Bangers-Regular.ttf");
-
-    // Load terrain images
-    /*  0 */ resources->terrainImages.push_back(new Image(renderer, "assets/images/terrain/water_deep.png", false));
-
-    /*  1 */ resources->terrainImages.push_back(new Image(renderer, "assets/images/terrain/water.png", false));
-
-    /*  2 */ resources->terrainImages.push_back(new Image(renderer, "assets/images/terrain/sand1.png", false));
-    /*  3 */ resources->terrainImages.push_back(new Image(renderer, "assets/images/terrain/sand2.png", false));
-
-    /*  4 */ resources->terrainImages.push_back(new Image(renderer, "assets/images/terrain/grass1.png", false));
-    /*  5 */ resources->terrainImages.push_back(new Image(renderer, "assets/images/terrain/grass2.png", false));
-
-    /*  6 */ resources->terrainImages.push_back(new Image(renderer, "assets/images/terrain/dirt1.png", false));
-    /*  7 */ resources->terrainImages.push_back(new Image(renderer, "assets/images/terrain/dirt2.png", false));
-
-    /*  8 */ resources->terrainImages.push_back(new Image(renderer, "assets/images/terrain/stone1.png", false));
-    /*  9 */ resources->terrainImages.push_back(new Image(renderer, "assets/images/terrain/stone1.png", false));
-
-    /* 10 */ resources->terrainImages.push_back(new Image(renderer, "assets/images/terrain/snow1.png", false));
-    /* 11 */ resources->terrainImages.push_back(new Image(renderer, "assets/images/terrain/snow2.png", false));
-
-    // Load object images
-    /*  0 */ resources->objectImages.push_back(new Image(renderer, "assets/images/objects/bush1.png", true));
-    /*  1 */ resources->objectImages.push_back(new Image(renderer, "assets/images/objects/bush2.png", true));
-
-    /*  2 */ resources->objectImages.push_back(new Image(renderer, "assets/images/objects/tree1.png", true));
-    /*  3 */ resources->objectImages.push_back(new Image(renderer, "assets/images/objects/tree2.png", true));
-    /*  4 */ resources->objectImages.push_back(new Image(renderer, "assets/images/objects/tree3.png", true));
-    /*  5 */ resources->objectImages.push_back(new Image(renderer, "assets/images/objects/tree4.png", true));
-
-    /*  6 */ resources->objectImages.push_back(new Image(renderer, "assets/images/objects/trunk1.png", true));
-    /*  7 */ resources->objectImages.push_back(new Image(renderer, "assets/images/objects/trunk2.png", true));
-
-    /*  8 */ resources->objectImages.push_back(new Image(renderer, "assets/images/objects/rock1.png", true));
-    /*  9 */ resources->objectImages.push_back(new Image(renderer, "assets/images/objects/rock2.png", true));
-
-    /* 10 */ resources->objectImages.push_back(new Image(renderer, "assets/images/objects/house1.png", true));
-    /* 11 */ resources->objectImages.push_back(new Image(renderer, "assets/images/objects/house2.png", true));
-    /* 12 */ resources->objectImages.push_back(new Image(renderer, "assets/images/objects/house3.png", true));
-    /* 13 */ resources->objectImages.push_back(new Image(renderer, "assets/images/objects/house4.png", true));
+    // Load resources
+    resources = std::make_shared<Resources>(renderer);
 
     // Generate world
     int seed = 1;
     int width = 512;
     int height = 512;
-    world = new World(width, height, seed);
-    camera = new Camera(world, (float)width / 2, (float)height / 2, 2);
+
+    world = std::make_shared<World>(renderer, resources, width, height, seed);
+
+    camera = std::make_unique<Camera>(world, (float)width / 2, (float)height / 2, 2);
 }
 
-Game::~Game() {
-    SDL_DestroyRenderer(renderer);
-
-    SDL_DestroyWindow(window);
-}
-
-void Game::handleEvent(SDL_Event *event) {
+void Game::handleEvent(const SDL_Event *event) {
     // Send all events to camera
     camera->handleEvent(event);
 
@@ -96,10 +50,10 @@ void Game::handleEvent(SDL_Event *event) {
         if (event->key.keysym.sym == SDLK_F11) {
             if (!fullscreen) {
                 fullscreen = true;
-                SDL_SetWindowFullscreen(window, SDL_WINDOW_FULLSCREEN_DESKTOP);
+                SDL_SetWindowFullscreen(window.get(), SDL_WINDOW_FULLSCREEN_DESKTOP);
             } else {
                 fullscreen = false;
-                SDL_SetWindowFullscreen(window, 0);
+                SDL_SetWindowFullscreen(window.get(), 0);
             }
         }
     }
@@ -125,29 +79,22 @@ void Game::update(float delta) {
 
 void Game::draw() {
     // Clear screen
-    SDL_SetRenderDrawColor(renderer, 17, 17, 17, 255);
-    SDL_RenderClear(renderer);
+    SDL_SetRenderDrawColor(renderer.get(), 17, 17, 17, 255);
+    SDL_RenderClear(renderer.get());
 
     // Draw world with camera
-    world->draw(renderer, camera);
-
-    // Load resources into singleton
-    Resources *resources = Resources::getInstance();
+    world->draw(camera.get());
 
     // Draw debug label
     char debugLabel[128];
     sprintf(debugLabel, "camera.x = %.02f, camera.y = %.02f, camera.tileSize = %d", camera->x, camera->y, camera->tileSize);
 
-    SDL_Texture *debugLabelTexture = resources->font->render(renderer, debugLabel, 32, 0x00ffffff);
-
-    SDL_Rect debugLabelRect = { 16, 16, 0, 0 };
-    SDL_QueryTexture(debugLabelTexture, nullptr, nullptr, &debugLabelRect.w, &debugLabelRect.h);
-    SDL_RenderCopy(renderer, debugLabelTexture, nullptr, &debugLabelRect);
-
-    SDL_DestroyTexture(debugLabelTexture);
+    auto debugLabelImage = resources->textFont->render(renderer, debugLabel, 32, RGB(255, 255, 255));
+    Rect debugLabelRect = { 16, 16, debugLabelImage->width, debugLabelImage->height };
+    debugLabelImage->draw(&debugLabelRect);
 
     // Update screen
-    SDL_RenderPresent(renderer);
+    SDL_RenderPresent(renderer.get());
 }
 
 void Game::start() {
@@ -155,6 +102,7 @@ void Game::start() {
     uint64_t oldTime = SDL_GetPerformanceCounter();
 
     // Game loop
+    running = true;
     while (running) {
         // Handle events
         SDL_Event event;
@@ -164,7 +112,7 @@ void Game::start() {
 
         // Calculate new delta via old and new time
         time = SDL_GetPerformanceCounter();
-        double delta = ((time - oldTime) * 1000) / (double)SDL_GetPerformanceFrequency();
+        float delta = ((time - oldTime) * 1000) / (float)SDL_GetPerformanceFrequency();
 
         // Update game
         update(delta);
