@@ -4,6 +4,7 @@
 #include <iostream>
 #include <memory>
 #include <SDL2/SDL.h>
+#include "utils.hpp"
 #include "stb_image.h"
 
 Image::Image(std::shared_ptr<SDL_Renderer> renderer, const char *path, bool transparent)
@@ -30,7 +31,7 @@ void Image::draw(const Rect *destinationRect) const {
 }
 
 void Image::draw(const Rect *destinationRect, float angle) const {
-    SDL_RenderCopyEx(renderer.get(), texture.get(), nullptr, (SDL_Rect *)destinationRect, angle, nullptr, SDL_FLIP_NONE);
+    SDL_RenderCopyEx(renderer.get(), texture.get(), nullptr, (SDL_Rect *)destinationRect, radiansToDegrees(angle), nullptr, SDL_FLIP_NONE);
 }
 
 void Image::draw(const Rect *destinationRect, const Rect *sourceRect) const {
@@ -38,7 +39,7 @@ void Image::draw(const Rect *destinationRect, const Rect *sourceRect) const {
 }
 
 void Image::draw(const Rect *destinationRect, const Rect *sourceRect, float angle) const {
-    SDL_RenderCopyEx(renderer.get(), texture.get(), (SDL_Rect *)sourceRect, (SDL_Rect *)destinationRect, angle, nullptr, SDL_FLIP_NONE);
+    SDL_RenderCopyEx(renderer.get(), texture.get(), (SDL_Rect *)sourceRect, (SDL_Rect *)destinationRect, radiansToDegrees(angle), nullptr, SDL_FLIP_NONE);
 }
 
 void Image::loadBitmap(const uint8_t *bitmap) {

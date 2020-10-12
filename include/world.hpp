@@ -9,6 +9,7 @@
 #include "random.hpp"
 #include "object.hpp"
 #include "city.hpp"
+#include "vehicle.hpp"
 class World;
 #include "camera.hpp"
 
@@ -23,6 +24,7 @@ class World {
         std::unique_ptr<uint8_t[]> objectMap;
         std::vector<std::unique_ptr<Object>> objects;
         std::vector<std::unique_ptr<City>> cities;
+        std::vector<std::unique_ptr<Vehicle>> vehicles;
 
         World(std::shared_ptr<SDL_Renderer> renderer, std::shared_ptr<Resources> resources, int width, int height, int seed);
 

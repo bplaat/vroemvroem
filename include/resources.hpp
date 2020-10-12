@@ -13,6 +13,7 @@ class Resources {
         std::unique_ptr<Font> textFont;
         std::vector<std::unique_ptr<Image>> terrainImages;
         std::vector<std::unique_ptr<Image>> objectImages;
+        std::vector<std::unique_ptr<Image>> blueVehicleImages;
 
         Resources(std::shared_ptr<SDL_Renderer> renderer);
 };

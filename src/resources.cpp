@@ -49,4 +49,12 @@ Resources::Resources(std::shared_ptr<SDL_Renderer> renderer) {
     /* 11 */ objectImages.push_back(std::make_unique<Image>(renderer, "assets/images/objects/house2.png", true));
     /* 12 */ objectImages.push_back(std::make_unique<Image>(renderer, "assets/images/objects/house3.png", true));
     /* 13 */ objectImages.push_back(std::make_unique<Image>(renderer, "assets/images/objects/house4.png", true));
+
+    // Load vehicle images
+    /* 0 */ blueVehicleImages.push_back(std::make_unique<Image>(renderer, "assets/images/vehicles/blue/vehicle1.png", true));
+    /* 1 */ blueVehicleImages.push_back(std::make_unique<Image>(renderer, "assets/images/vehicles/blue/vehicle2.png", true));
+    /* 2 */ blueVehicleImages.push_back(std::make_unique<Image>(renderer, "assets/images/vehicles/blue/vehicle3.png", true));
+    /* 3 */ blueVehicleImages.push_back(std::make_unique<Image>(renderer, "assets/images/vehicles/blue/vehicle4.png", true));
+    /* 4 */ blueVehicleImages.push_back(std::make_unique<Image>(renderer, "assets/images/vehicles/blue/vehicle5.png", true));
+    /* 5 */ blueVehicleImages.push_back(std::make_unique<Image>(renderer, "assets/images/vehicles/blue/vehicle6.png", true));
 }

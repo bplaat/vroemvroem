@@ -3,11 +3,16 @@
 #pragma once
 
 #include <SDL2/SDL.h>
+#include <cmath>
 #include <cstdint>
 #include "stb_image.h"
 #include "stb_truetype.h"
 
 #define RGB(r, g, b) (uint32_t)((uint8_t)r | ((uint8_t)g << 8) | ((uint8_t)b << 16))
+
+#define degreesToRadians(degrees) (degrees * M_PI / 180.0)
+
+#define radiansToDegrees(radians) (radians * 180.0 / M_PI)
 
 struct Rect {
     int x;

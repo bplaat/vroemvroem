@@ -135,6 +135,19 @@ World::World(std::shared_ptr<SDL_Renderer> renderer, std::shared_ptr<Resources> 
             }
         }
     }
+
+    // Generate vehicles
+    for (int i = 0; i < sqrt(height * width) / 3; i++) {
+        int x;
+        int y;
+
+        do {
+            x = random->randomInt(0, width - 1);
+            y = random->randomInt(0, height - 1);
+        } while (terrainMap[y * width + x] <= 2);
+
+        vehicles.push_back(std::make_unique<Vehicle>(vehicles.size(), random->randomInt(0, 5), (float)x, (float)y, degreesToRadians(random->randomInt(0, 360))));
+    }
 }
 
 void World::update(float delta) {
@@ -175,6 +188,21 @@ void World::draw(const Camera *camera) {
         if (objectRect.x + objectRect.width >= 0 && objectRect.y + objectRect.height >= 0 && objectRect.x < gameWidth && objectRect.y < gameHeight) {
             const Image *objectImage = resources->objectImages[object->type].get();
             objectImage->draw(&objectRect);
+        }
+    }
+
+    // Draw vehicles
+    for (auto &vehicle : vehicles) {
+        Rect vehicleRect = {
+            (int)(vehicle->x * camera->tileSize - (camera->x * camera->tileSize - gameWidth / 2)),
+            (int)(vehicle->y * camera->tileSize - (camera->y * camera->tileSize - gameHeight / 2)),
+            camera->tileSize,
+            camera->tileSize
+        };
+
+        if (vehicleRect.x + vehicleRect.width >= 0 && vehicleRect.y + vehicleRect.height >= 0 && vehicleRect.x < gameWidth && vehicleRect.y < gameHeight) {
+            const Image *vehicleImage = resources->blueVehicleImages[vehicle->type].get();
+            vehicleImage->draw(&vehicleRect, vehicle->angle);
         }
     }
 
