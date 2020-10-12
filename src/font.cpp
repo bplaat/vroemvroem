@@ -5,6 +5,7 @@
 #include <cstring>
 #include <memory>
 #include <SDL2/SDL.h>
+#include "utils.hpp"
 #include "stb_truetype.h"
 #include "image.hpp"
 
@@ -76,7 +77,7 @@ std::unique_ptr<Image> Font::render(std::shared_ptr<SDL_Renderer> renderer, cons
         int y = ascent + c_y1;
 
         int characterWidth, characterHeight;
-        auto characterBitmap = std::unique_ptr<uint8_t[]>(stbtt_GetCodepointBitmap(&fontInfo, 0, scale, text[i], &characterWidth, &characterHeight, 0, 0));
+        auto characterBitmap = std::unique_ptr<uint8_t[], stbtt_deleter>(stbtt_GetCodepointBitmap(&fontInfo, 0, scale, text[i], &characterWidth, &characterHeight, 0, 0));
 
         for (int cy = 0; cy < characterHeight; cy++) {
             for (int cx = 0; cx < characterWidth; cx++) {

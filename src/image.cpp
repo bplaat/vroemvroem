@@ -10,7 +10,7 @@ Image::Image(std::shared_ptr<SDL_Renderer> renderer, const char *path, bool tran
     : renderer(renderer), transparent(transparent)
 {
     int channels;
-    auto bitmap = std::unique_ptr<uint8_t[]>(stbi_load(path, &width, &height, &channels, transparent ? STBI_rgb_alpha : STBI_rgb));
+    auto bitmap = std::unique_ptr<uint8_t[], stbi_deleter>(stbi_load(path, &width, &height, &channels, transparent ? STBI_rgb_alpha : STBI_rgb));
     if (!bitmap) {
         std::cerr << "[ERROR] Can't load image: " << path << std::endl;
         exit(EXIT_FAILURE);

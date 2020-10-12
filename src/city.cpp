@@ -16,7 +16,7 @@ std::unique_ptr<char[]> City::randomName(Random *random) {
 
     int nameLength = random->randomInt(2, 5) * 2;
 
-    auto randomName = std::make_unique<char[]>(nameLength);
+    auto randomName = std::make_unique<char[]>(nameLength + 1);
     int pos = 0;
     while (pos < nameLength) {
         randomName[pos] = consonants[random->randomInt(0, consonantsLength - 1)];

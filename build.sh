@@ -62,7 +62,7 @@ else
         if [ "$1" == "debug" ]; then
             gdb ./target/debug/$name-v$version-$platform-debug
         elif [ "$1" == "mem" ]; then
-            valgrind ./target/debug/$name-v$version-$platform-debug
+            valgrind --suppressions=./linux_sdl_gl.sup --leak-check=full --show-leak-kinds=all --log-file=target/debug/valgrind.log ./target/debug/$name-v$version-$platform-debug
         else
             ./target/debug/$name-v$version-$platform-debug
         fi
