@@ -10,6 +10,10 @@
 
 #define RGB(r, g, b) (uint32_t)((uint8_t)r | ((uint8_t)g << 8) | ((uint8_t)b << 16))
 
+#ifndef M_PI
+#define M_PI (3.14159265358979323846)
+#endif
+
 #define degreesToRadians(degrees) (degrees * M_PI / 180.0)
 
 #define radiansToDegrees(radians) (radians * 180.0 / M_PI)
