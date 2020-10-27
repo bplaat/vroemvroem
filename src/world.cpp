@@ -219,8 +219,8 @@ void World::draw(const Camera *camera) {
 
         if (cityLabelRect.x + cityLabelRect.width >= 0 && cityLabelRect.y + cityLabelRect.height >= 0 && cityLabelRect.x < gameWidth && cityLabelRect.y < gameHeight) {
             if (camera->zoomLevel >= 2) {
-                auto cityLabelImage = resources->textFont->render(renderer, cityLabel, cityLabelRect.height, RGB(255, 255, 255));
-                cityLabelImage->draw(&cityLabelRect);
+                // auto cityLabelImage = resources->textFont->render(renderer, cityLabel, cityLabelRect.height, RGB(255, 255, 255));
+                // cityLabelImage->draw(&cityLabelRect);
             }
         }
     }

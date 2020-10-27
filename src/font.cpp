@@ -73,20 +73,14 @@ std::unique_ptr<Image> Font::render(std::shared_ptr<SDL_Renderer> renderer, cons
 
         int c_x1, c_y1, c_x2, c_y2;
         stbtt_GetCodepointBitmapBox(&fontInfo, text[i], scale, scale, &c_x1, &c_y1, &c_x2, &c_y2);
-
         int y = ascent + c_y1;
 
         int characterWidth, characterHeight;
         auto characterBitmap = std::unique_ptr<uint8_t[], stbtt_deleter>(stbtt_GetCodepointBitmap(&fontInfo, 0, scale, text[i], &characterWidth, &characterHeight, 0, 0));
-
         for (int cy = 0; cy < characterHeight; cy++) {
             for (int cx = 0; cx < characterWidth; cx++) {
                 int pos = (y + cy) * width + (x + cx);
-                if (bitmap[pos] == 0) {
-                    bitmap[pos] = characterBitmap[cy * characterWidth + cx];
-                } else {
-                    bitmap[pos] = std::max(bitmap[pos], characterBitmap[cy * characterWidth + cx]);
-                }
+                bitmap[pos] = std::max(bitmap[pos], characterBitmap[cy * characterWidth + cx]);
             }
         }
 
