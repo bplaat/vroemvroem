@@ -110,7 +110,7 @@ void Game::draw() const {
     SDL_RenderClear(renderer);
 
     // Draw world with camera
-    world->draw(canvas.get(), camera.get());
+    world->draw(canvas, camera.get());
 
     int tileSize = Camera::zoomLevels[camera->getZoom()];
 

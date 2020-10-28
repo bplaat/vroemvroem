@@ -3,6 +3,7 @@
 #include "camera.hpp"
 
 const int Camera::zoomLevels[] = { 8, 16, 24, 32, 48, 64, 80, 96, 112, 128 };
+const int Camera::zoomLevelsSize = static_cast<int>(sizeof(zoomLevels) / sizeof(zoomLevels[0]));
 
 Camera::Camera(float x, float y, int width, int height, int zoom)
     : x(x), y(y), width(width), height(height), zoom(zoom)
@@ -31,7 +32,7 @@ int Camera::getZoom() const {
 }
 
 void Camera::setZoom(int zoom) {
-    if (zoom >= 0 && zoom < static_cast<int>(sizeof(zoomLevels) / sizeof(int))) {
+    if (zoom >= 0 && zoom < Camera::zoomLevelsSize) {
         this->zoom = zoom;
     }
 }
@@ -73,7 +74,7 @@ void Camera::handleEvent(const SDL_Event *event) {
         }
 
         if (event->wheel.y > 0) {
-            if (zoom < static_cast<int>(sizeof(zoomLevels) / sizeof(int)) - 1) {
+            if (zoom < Camera::zoomLevelsSize - 1) {
                 zoom++;
             }
         }

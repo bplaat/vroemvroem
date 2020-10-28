@@ -44,5 +44,5 @@ class World {
 
         void update(float delta);
 
-        void draw(Canvas *canvas, const Camera *camera) const;
+        void draw(std::shared_ptr<Canvas> canvas, const Camera *camera) const;
 };

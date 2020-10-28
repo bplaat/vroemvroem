@@ -23,7 +23,7 @@ void City::setPopulation(int population) {
     this->population = population;
 }
 
-void City::draw(Canvas *canvas, const Camera *camera) const {
+void City::draw(std::shared_ptr<Canvas> canvas, const Camera *camera) const {
     std::unique_ptr<Rect> canvasRect = canvas->getRect();
 
     char cityLabel[128];
@@ -40,8 +40,9 @@ void City::draw(Canvas *canvas, const Camera *camera) const {
     cityRect.y = static_cast<int>(y * tileSize - (camera->getY() * tileSize - canvasRect->height / 2)) - cityRect.height / 2;
 
     if (Rect::collision(canvasRect.get(), &cityRect) && camera->getZoom() >= 2) {
-        // std::unique_ptr<Image> cityLabelImage = textFont->render(canvas, cityLabel, cityLabelRect.height, RGB(255, 255, 255));
-        // cityLabelImage->draw(&cityLabelRect);
+        // VERY BUGGY!!!
+        // std::unique_ptr<Image> cityLabelImage = textFont->render(canvas, cityLabel, cityRect.height, RGB(255, 255, 255));
+        // cityLabelImage->draw(&cityRect);
     }
 }
 

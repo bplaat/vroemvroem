@@ -7,6 +7,7 @@
 class Camera {
     public:
         static const int zoomLevels[];
+        static const int zoomLevelsSize;
 
     private:
         float x;

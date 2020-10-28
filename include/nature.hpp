@@ -34,7 +34,7 @@ class Nature : public Object {
 
         Nature::Type getType() const;
 
-        void draw(Canvas *canvas, const Camera *camera) const;
+        void draw(std::shared_ptr<Canvas> canvas, const Camera *camera) const;
 
         static void loadImages(std::shared_ptr<Canvas> canvas);
 

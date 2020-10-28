@@ -12,7 +12,7 @@ Nature::Type Nature::getType() const {
     return type;
 }
 
-void Nature::draw(Canvas *canvas, const Camera *camera) const {
+void Nature::draw(std::shared_ptr<Canvas> canvas, const Camera *camera) const {
     std::unique_ptr<Rect> canvasRect = canvas->getRect();
 
     int tileSize = Camera::zoomLevels[camera->getZoom()];

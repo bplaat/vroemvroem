@@ -193,7 +193,7 @@ void World::update(float delta) {
     }
 }
 
-void World::draw(Canvas *canvas, const Camera *camera) const {
+void World::draw(std::shared_ptr<Canvas> canvas, const Camera *camera) const {
     std::unique_ptr<Rect> canvasRect = canvas->getRect();
 
     // Draw terrain tiles

@@ -2,6 +2,7 @@
 
 #pragma once
 
+#include <memory>
 #include "canvas.hpp"
 #include "camera.hpp"
 
@@ -24,5 +25,5 @@ class Object {
 
         virtual void update(float delta);
 
-        virtual void draw(Canvas *canvas, const Camera *camera) const = 0;
+        virtual void draw(std::shared_ptr<Canvas> canvas, const Camera *camera) const = 0;
 };

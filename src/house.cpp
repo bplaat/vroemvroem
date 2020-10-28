@@ -16,7 +16,7 @@ int House::getPopulation() const {
     return population;
 }
 
-void House::draw(Canvas *canvas, const Camera *camera) const {
+void House::draw(std::shared_ptr<Canvas> canvas, const Camera *camera) const {
     std::unique_ptr<Rect> canvasRect = canvas->getRect();
 
     int tileSize = Camera::zoomLevels[camera->getZoom()];

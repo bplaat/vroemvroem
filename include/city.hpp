@@ -3,6 +3,7 @@
 #pragma once
 
 #include "object.hpp"
+#include <memory>
 #include "canvas.hpp"
 #include "camera.hpp"
 #include "random.hpp"
@@ -22,7 +23,7 @@ class City : public Object {
 
         void setPopulation(int population);
 
-        void draw(Canvas *canvas, const Camera *camera) const;
+        void draw(std::shared_ptr<Canvas> canvas, const Camera *camera) const;
 
         static const char *randomName(Random *random);
 };

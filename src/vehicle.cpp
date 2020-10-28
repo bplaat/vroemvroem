@@ -1,12 +1,90 @@
 // VroemVroem - Vehicle
 
 #include "vehicle.hpp"
+#include <cmath>
 #include "rect.hpp"
+
+VehicleStats Vehicle::stats[static_cast<size_t>(Vehicle::Type::size)] = {
+    // Standard car
+    {
+        "Normal Baby",  // name
+        71,             // width
+        131,            // height
+        700,            // maxForwardVelocity
+        200,            // forwardAcceleration
+        -200,           // maxBackwardVelocity
+        -60,            // backwardAcceleration
+        radians(90)     // turningSpeed
+    },
+
+    // Mini car
+    {
+        "Mini",     // name
+        71,         // width
+        116,        // height
+        700,        // maxForwardVelocity
+        200,        // forwardAcceleration
+        -200,       // maxBackwardVelocity
+        -60,        // backwardAcceleration
+        radians(90) // turningSpeed
+    },
+
+    // Sport car
+    {
+        "Sporty",   // name
+        70,         // width
+        131,        // height
+        700,        // maxForwardVelocity
+        200,        // forwardAcceleration
+        -200,       // maxBackwardVelocity
+        -60,        // backwardAcceleration
+        radians(90) // turningSpeed
+    },
+
+    // Truck car
+    {
+        "Truck",    // name
+        71,         // width
+        131,        // height
+        700,        // maxForwardVelocity
+        200,        // forwardAcceleration
+        -200,       // maxBackwardVelocity
+        -60,        // backwardAcceleration
+        radians(90) // turningSpeed
+    },
+
+    // Tesla car
+    {
+        "Tesla",    // name
+        70,         // width
+        121,        // height
+        700,        // maxForwardVelocity
+        200,        // forwardAcceleration
+        -200,       // maxBackwardVelocity
+        -60,        // backwardAcceleration
+        radians(90) // turningSpeed
+    },
+
+    // Motor cycle car
+    {
+        "Motor cycle",  // name
+        44,             // width
+        100,            // height
+        700,            // maxForwardVelocity
+        200,            // forwardAcceleration
+        -200,           // maxBackwardVelocity
+        -60,            // backwardAcceleration
+        radians(90)     // turningSpeed
+    }
+};
 
 std::unique_ptr<Image> Vehicle::images[static_cast<size_t>(Vehicle::Color::size)][static_cast<size_t>(Vehicle::Type::size)];
 
 Vehicle::Vehicle(int id, Vehicle::Type type, float x, float y, Vehicle::Color color, float angle)
-    : Object::Object(id, x, y), type(type), color(color), angle(angle) {}
+    : Object::Object(id, x, y), type(type), color(color), angle(angle)
+{
+    velocity = 1;
+}
 
 Vehicle::Type Vehicle::getType() const {
     return type;
@@ -29,24 +107,32 @@ int Vehicle::getAcceleration() const {
 }
 
 void Vehicle::update(float delta) {
-    (void)delta;
+    int zoomedInSize = Camera::zoomLevels[Camera::zoomLevelsSize - 1];
+    x -= static_cast<float>(velocity) / zoomedInSize * sin(angle) * delta;
+    y -= static_cast<float>(velocity) / zoomedInSize * cos(angle) * delta;
 }
 
-void Vehicle::draw(Canvas *canvas, const Camera *camera) const {
+void Vehicle::draw(std::shared_ptr<Canvas> canvas, const Camera *camera) const {
     std::unique_ptr<Rect> canvasRect = canvas->getRect();
+
+    const VehicleStats *stats = getStats(type);
 
     int tileSize = Camera::zoomLevels[camera->getZoom()];
 
-    Rect vehicleRect = {
-        static_cast<int>(x * tileSize - (camera->getX() * tileSize - canvasRect->width / 2)),
-        static_cast<int>(y * tileSize - (camera->getY() * tileSize - canvasRect->height / 2)),
-        tileSize,
-        tileSize
-    };
+    Rect vehicleRect;
+    int zoomedInSize = Camera::zoomLevels[Camera::zoomLevelsSize - 1];
+    vehicleRect.width = static_cast<int>(static_cast<float>(stats->width) / zoomedInSize * tileSize);
+    vehicleRect.height = static_cast<int>(static_cast<float>(stats->height) / zoomedInSize * tileSize);
+    vehicleRect.x = static_cast<int>(x * tileSize - (camera->getX() * tileSize - canvasRect->width / 2) - vehicleRect.width / 2);
+    vehicleRect.y = static_cast<int>(y * tileSize - (camera->getY() * tileSize - canvasRect->height / 2) - vehicleRect.height / 2);
 
     if (Rect::collision(canvasRect.get(), &vehicleRect)) {
         getImage(type, color)->draw(&vehicleRect, angle);
     }
+}
+
+const VehicleStats *Vehicle::getStats(Vehicle::Type type) {
+    return &stats[static_cast<size_t>(type)];
 }
 
 void Vehicle::loadImages(std::shared_ptr<Canvas> canvas) {

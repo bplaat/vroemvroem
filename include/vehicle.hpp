@@ -8,6 +8,17 @@
 #include "canvas.hpp"
 #include "camera.hpp"
 
+struct VehicleStats {
+    const char *name;
+    int width;
+    int height;
+    int maxForwardVelocity;
+    int forwardAcceleration;
+    int maxBackwardVelocity;
+    int backwardAcceleration;
+    float turningSpeed;
+};
+
 class Vehicle : public Object {
     public:
         enum class Type {
@@ -30,6 +41,8 @@ class Vehicle : public Object {
         };
 
     private:
+        static VehicleStats stats[static_cast<size_t>(Vehicle::Type::size)];
+
         static std::unique_ptr<Image> images[static_cast<size_t>(Vehicle::Color::size)][static_cast<size_t>(Vehicle::Type::size)];
 
         Vehicle::Type type;
@@ -57,7 +70,9 @@ class Vehicle : public Object {
 
         void update(float delta);
 
-        void draw(Canvas *canvas, const Camera *camera) const;
+        void draw(std::shared_ptr<Canvas> canvas, const Camera *camera) const;
+
+        static const VehicleStats *getStats(Vehicle::Type type);
 
         static void loadImages(std::shared_ptr<Canvas> canvas);
 
