@@ -1,14 +1,65 @@
-// VroemVroem - Vehicle Object Header
+// VroemVroem - Vehicle Header
 
 #pragma once
 
-class Vehicle {
+#include "object.hpp"
+#include <memory>
+#include "image.hpp"
+#include "canvas.hpp"
+#include "camera.hpp"
+
+class Vehicle : public Object {
     public:
-        int id;
-        int type;
-        float x;
-        float y;
+        enum class Type {
+            STANDARD = 0,
+            MINI,
+            SPORT,
+            TRUCK,
+            TESLA,
+            MOTOR_CYCLE,
+            size
+        };
+
+        enum class Color {
+            BLACK = 0,
+            BLUE,
+            GREEN,
+            RED,
+            YELLOW,
+            size
+        };
+
+    private:
+        static std::unique_ptr<Image> images[static_cast<size_t>(Vehicle::Color::size)][static_cast<size_t>(Vehicle::Type::size)];
+
+        Vehicle::Type type;
+
+        Vehicle::Color color;
+
         float angle;
 
-        Vehicle(int id, int type, float x, float y, float angle);
+        int velocity;
+
+        int acceleration;
+
+    public:
+        Vehicle(int id, Vehicle::Type type, float x, float y, Vehicle::Color color, float angle);
+
+        Vehicle::Type getType() const;
+
+        Vehicle::Color getColor() const;
+
+        float getAngle() const;
+
+        int getVelocity() const;
+
+        int getAcceleration() const;
+
+        void update(float delta);
+
+        void draw(Canvas *canvas, const Camera *camera) const;
+
+        static void loadImages(std::shared_ptr<Canvas> canvas);
+
+        static const Image *getImage(Vehicle::Type type, Vehicle::Color color);
 };

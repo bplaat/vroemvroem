@@ -1,16 +1,21 @@
-// VroemVroem - Random Object Header
+// VroemVroem - Random Header
 
 #pragma once
 
 #include <cstdint>
 
 class Random {
-    public:
+    private:
         uint64_t seed;
 
+    public:
         Random(uint64_t seed);
+
+        uint64_t getSeed() const;
+
+        void setSeed(uint64_t seed);
 
         double random();
 
-        int randomInt(int min, int max);
+        int random(int min, int max);
 };

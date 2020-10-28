@@ -1,13 +1,13 @@
-// VroemVroem - Font Object
+// VroemVroem - Font
 
 #include "font.hpp"
 #include <iostream>
 #include <cstring>
 #include <memory>
-#include <SDL2/SDL.h>
-#include "utils.hpp"
 #include "stb_truetype.h"
+#include "canvas.hpp"
 #include "image.hpp"
+#include "utils.hpp"
 
 Font::Font(const char *path) {
     FILE *fontFile = fopen(path, "rb");
@@ -47,14 +47,14 @@ int Font::measure(const char *text, int textSize) {
     return width;
 }
 
-std::unique_ptr<Image> Font::render(std::shared_ptr<SDL_Renderer> renderer, const char *text, int textSize, uint32_t textColor) {
+std::unique_ptr<Image> Font::render(std::shared_ptr<Canvas> canvas, const char *text, int textSize, uint32_t textColor) {
     float scale = stbtt_ScaleForPixelHeight(&fontInfo, textSize);
     int xpadding = textSize / 4;
 
     int width = measure(text, textSize);
     int height = textSize;
 
-    auto bitmap = std::make_unique<uint8_t[]>(height * width);
+    std::unique_ptr<uint8_t[]> bitmap = std::make_unique<uint8_t[]>(height * width);
     for (int i = 0; i < height * width; i++) {
         bitmap[i] = 0;
     }
@@ -76,7 +76,7 @@ std::unique_ptr<Image> Font::render(std::shared_ptr<SDL_Renderer> renderer, cons
         int y = ascent + c_y1;
 
         int characterWidth, characterHeight;
-        auto characterBitmap = std::unique_ptr<uint8_t[], stbtt_deleter>(stbtt_GetCodepointBitmap(&fontInfo, 0, scale, text[i], &characterWidth, &characterHeight, 0, 0));
+        std::unique_ptr<uint8_t[], stbtt_deleter> characterBitmap = std::unique_ptr<uint8_t[], stbtt_deleter>(stbtt_GetCodepointBitmap(&fontInfo, 0, scale, text[i], &characterWidth, &characterHeight, 0, 0));
         for (int cy = 0; cy < characterHeight; cy++) {
             for (int cx = 0; cx < characterWidth; cx++) {
                 int pos = (y + cy) * width + (x + cx);
@@ -91,7 +91,7 @@ std::unique_ptr<Image> Font::render(std::shared_ptr<SDL_Renderer> renderer, cons
         }
     }
 
-    auto coloredBitmap = std::make_unique<uint8_t[]>(height * width * 4);
+    std::unique_ptr<uint8_t[]> coloredBitmap = std::make_unique<uint8_t[]>(height * width * 4);
     for (int y = 0; y < height; y++) {
         for (int x = 0; x < width; x++) {
             int pos = (y * width + x) * 4;
@@ -102,5 +102,5 @@ std::unique_ptr<Image> Font::render(std::shared_ptr<SDL_Renderer> renderer, cons
         }
     }
 
-    return std::make_unique<Image>(renderer, width, height, true, coloredBitmap.get());
+    return std::make_unique<Image>(canvas, width, height, true, coloredBitmap.get());
 }

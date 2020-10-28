@@ -1,30 +1,43 @@
-// VroemVroem - Image Object Header
+// VroemVroem - Image Header
 
 #pragma once
 
 #include <memory>
+#include "canvas.hpp"
 #include <SDL2/SDL.h>
 #include "utils.hpp"
+#include "rect.hpp"
 
 class Image {
-    public:
-        std::shared_ptr<SDL_Renderer> renderer;
+    private:
+        std::shared_ptr<Canvas> canvas;
+
         int width;
+
         int height;
+
         bool transparent;
+
         std::unique_ptr<SDL_Texture, SDL_deleter> texture;
 
-        Image(std::shared_ptr<SDL_Renderer> renderer, const char *path, bool transparent);
+    public:
+        Image(std::shared_ptr<Canvas> canvas, const char *path, bool transparent);
 
-        Image(std::shared_ptr<SDL_Renderer> renderer, int width, int height, bool transparent, const uint8_t *bitmap);
+        Image(std::shared_ptr<Canvas> canvas, int width, int height, bool transparent, const uint8_t *bitmap);
 
-        void draw(const Rect *destinationRect) const;
+        std::shared_ptr<Canvas> getCanvas() const;
 
-        void draw(const Rect *destinationRect, float angle) const;
+        int getWidth() const;
 
-        void draw(const Rect *destinationRect, const Rect *sourceRect) const;
+        int getHeight() const;
 
-        void draw(const Rect *destinationRect, const Rect *sourceRect, float angle) const;
+        bool isTransparent() const;
+
+        SDL_Texture *getTexture() const;
+
+        void draw(const Rect *rect) const;
+
+        void draw(const Rect *rect, float angle) const;
 
     private:
         void loadBitmap(const uint8_t *bitmap);

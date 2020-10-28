@@ -1,19 +1,28 @@
-// VroemVroem - City Object Header
+// VroemVroem - City Header
 
 #pragma once
 
-#include <memory>
+#include "object.hpp"
+#include "canvas.hpp"
+#include "camera.hpp"
 #include "random.hpp"
 
-class City {
-    public:
-        int id;
-        std::unique_ptr<char[]> name;
-        int x;
-        int y;
+class City : public Object {
+    private:
+        const char *name;
+
         int population;
 
-        City(int id, std::unique_ptr<char[]> name, int x, int y, int population);
+    public:
+        City(int id, const char *name, float x, float y, int population);
 
-        static std::unique_ptr<char[]> randomName(Random *random);
+        const char *getName() const;
+
+        int getPopulation() const;
+
+        void setPopulation(int population);
+
+        void draw(Canvas *canvas, const Camera *camera) const;
+
+        static const char *randomName(Random *random);
 };

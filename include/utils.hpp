@@ -2,28 +2,29 @@
 
 #pragma once
 
-#include <SDL2/SDL.h>
-#include <cmath>
 #include <cstdint>
+#include <cmath>
+#include <SDL2/SDL.h>
 #include "stb_image.h"
 #include "stb_truetype.h"
 
+// ### Utils ###
 #define RGB(r, g, b) (uint32_t)((uint8_t)r | ((uint8_t)g << 8) | ((uint8_t)b << 16))
 
+
+// ### Math ###
+
+// Mirosoft C++ libs don't define PI :(
 #ifndef M_PI
 #define M_PI (3.14159265358979323846)
 #endif
 
-#define degreesToRadians(degrees) (degrees * M_PI / 180.0)
+#define radians(degrees) (static_cast<double>(degrees) * M_PI / 180.0)
 
-#define radiansToDegrees(radians) (radians * 180.0 / M_PI)
+#define degrees(radians) (static_cast<double>(radians) * 180.0 / M_PI)
 
-struct Rect {
-    int x;
-    int y;
-    int width;
-    int height;
-};
+
+// ### Deleters ###
 
 struct SDL_deleter {
     void operator()(SDL_Window *window) const { SDL_DestroyWindow(window); }

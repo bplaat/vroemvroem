@@ -13,7 +13,7 @@ int main() {
         return EXIT_FAILURE;
     }
 
-    Game game;
+    Game game("VroemVroem", 1280, 720, false);
     game.start();
 
     SDL_Quit();

@@ -1,13 +1,28 @@
-// VroemVroem - Object Object Header
+// VroemVroem - Object Header
 
 #pragma once
 
-class Object {
-    public:
-        int id;
-        int type;
-        int x;
-        int y;
+#include "canvas.hpp"
+#include "camera.hpp"
 
-        Object(int id, int type, int x, int y);
+class Object {
+    protected:
+        int id;
+
+        float x;
+
+        float y;
+
+        Object(int id, float x, float y);
+
+    public:
+        int getId() const;
+
+        float getX() const;
+
+        float getY() const;
+
+        virtual void update(float delta);
+
+        virtual void draw(Canvas *canvas, const Camera *camera) const = 0;
 };

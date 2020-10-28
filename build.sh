@@ -50,7 +50,12 @@ else
         object="target/debug/$(basename $file .cpp).o"
         if [[ $file -nt $object ]]; then
             rm -f $object
-            g++ -g -DDEBUG -Wall -Wextra -Wpedantic --std=c++17 -Iinclude -c $file -o $object
+            if g++ -g -DDEBUG -Wall -Wextra -Wpedantic --std=c++17 -Iinclude -c $file -o $object; then
+                echo "Passed: $file"
+            else
+                echo "Failed: $file"
+                exit
+            fi
         fi
     done
 

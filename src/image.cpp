@@ -1,17 +1,14 @@
-// VroemVroem - Image Object
+// VroemVroem - Image
 
 #include "image.hpp"
 #include <iostream>
-#include <memory>
-#include <SDL2/SDL.h>
-#include "utils.hpp"
 #include "stb_image.h"
 
-Image::Image(std::shared_ptr<SDL_Renderer> renderer, const char *path, bool transparent)
-    : renderer(renderer), transparent(transparent)
+Image::Image(std::shared_ptr<Canvas> canvas, const char *path, bool transparent)
+    : canvas(canvas), transparent(transparent)
 {
     int channels;
-    auto bitmap = std::unique_ptr<uint8_t[], stbi_deleter>(stbi_load(path, &width, &height, &channels, transparent ? STBI_rgb_alpha : STBI_rgb));
+    std::unique_ptr<uint8_t[], stbi_deleter> bitmap = std::unique_ptr<uint8_t[], stbi_deleter>(stbi_load(path, &width, &height, &channels, transparent ? STBI_rgb_alpha : STBI_rgb));
     if (!bitmap) {
         std::cerr << "[ERROR] Can't load image: " << path << std::endl;
         exit(EXIT_FAILURE);
@@ -20,30 +17,42 @@ Image::Image(std::shared_ptr<SDL_Renderer> renderer, const char *path, bool tran
     loadBitmap(bitmap.get());
 }
 
-Image::Image(std::shared_ptr<SDL_Renderer> renderer, int width, int height, bool transparent, const uint8_t *bitmap)
-    : renderer(renderer), width(width), height(height), transparent(transparent)
+Image::Image(std::shared_ptr<Canvas> canvas, int width, int height, bool transparent, const uint8_t *bitmap)
+    : canvas(canvas), width(width), height(height), transparent(transparent)
 {
     loadBitmap(bitmap);
 }
 
-void Image::draw(const Rect *destinationRect) const {
-    SDL_RenderCopy(renderer.get(), texture.get(), nullptr, (SDL_Rect *)destinationRect);
+std::shared_ptr<Canvas> Image::getCanvas() const {
+    return canvas;
 }
 
-void Image::draw(const Rect *destinationRect, float angle) const {
-    SDL_RenderCopyEx(renderer.get(), texture.get(), nullptr, (SDL_Rect *)destinationRect, radiansToDegrees(angle), nullptr, SDL_FLIP_NONE);
+int Image::getWidth() const {
+    return width;
 }
 
-void Image::draw(const Rect *destinationRect, const Rect *sourceRect) const {
-    SDL_RenderCopy(renderer.get(), texture.get(), (SDL_Rect *)sourceRect, (SDL_Rect *)destinationRect);
+int Image::getHeight() const {
+    return height;
 }
 
-void Image::draw(const Rect *destinationRect, const Rect *sourceRect, float angle) const {
-    SDL_RenderCopyEx(renderer.get(), texture.get(), (SDL_Rect *)sourceRect, (SDL_Rect *)destinationRect, radiansToDegrees(angle), nullptr, SDL_FLIP_NONE);
+bool Image::isTransparent() const {
+    return transparent;
+}
+
+SDL_Texture *Image::getTexture() const {
+    return texture.get();
+}
+
+void Image::draw(const Rect *rect) const {
+    SDL_RenderCopy(canvas->getRenderer(), texture.get(), nullptr, (SDL_Rect *)rect);
+}
+
+void Image::draw(const Rect *rect, float angle) const {
+    SDL_RenderCopyEx(canvas->getRenderer(), texture.get(), nullptr, (SDL_Rect *)rect, degrees(angle), nullptr, SDL_FLIP_NONE);
 }
 
 void Image::loadBitmap(const uint8_t *bitmap) {
-    auto surface = std::unique_ptr<SDL_Surface, SDL_deleter>(SDL_CreateRGBSurfaceFrom(
+    std::unique_ptr<SDL_Surface, SDL_deleter> surface = std::unique_ptr<SDL_Surface, SDL_deleter>(SDL_CreateRGBSurfaceFrom(
         (void *)bitmap, width, height,
         transparent ? 32 : 24, transparent ? 4 * width : 3 * width,
         0x000000ff, 0x0000ff00, 0x00ff0000, transparent ? 0xff000000 : 0x00000000
@@ -53,7 +62,7 @@ void Image::loadBitmap(const uint8_t *bitmap) {
         exit(EXIT_FAILURE);
     }
 
-    texture = std::unique_ptr<SDL_Texture, SDL_deleter>(SDL_CreateTextureFromSurface(renderer.get(), surface.get()));
+    texture = std::unique_ptr<SDL_Texture, SDL_deleter>(SDL_CreateTextureFromSurface(canvas->getRenderer(), surface.get()));
     if (!texture) {
         std::cerr << "[ERROR] Can't create SDL texture: " << SDL_GetError() << std::endl;
         exit(EXIT_FAILURE);

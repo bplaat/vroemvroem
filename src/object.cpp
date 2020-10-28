@@ -1,6 +1,22 @@
-// VroemVroem - Object Object
+// VroemVroem - Object
 
 #include "object.hpp"
 
-Object::Object(int id, int type, int x, int y)
-    : id(id), type(type), x(x), y(y) {}
+Object::Object(int id, float x, float y)
+    : id(id), x(x), y(y) {}
+
+int Object::getId() const {
+    return id;
+}
+
+float Object::getX() const {
+    return x;
+}
+
+float Object::getY() const {
+    return y;
+}
+
+void Object::update(float delta) {
+    (void)delta;
+}

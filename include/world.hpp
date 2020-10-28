@@ -1,34 +1,48 @@
-// VroemVroem - World Object Header
+// VroemVroem - World Header
 
 #pragma once
 
-#include <vector>
 #include <memory>
-#include <SDL2/SDL.h>
-#include "resources.hpp"
 #include "random.hpp"
-#include "object.hpp"
+#include <vector>
+#include "nature.hpp"
+#include "house.hpp"
 #include "city.hpp"
 #include "vehicle.hpp"
-class World;
 #include "camera.hpp"
 
 class World {
-    public:
-        std::shared_ptr<SDL_Renderer> renderer;
-        std::shared_ptr<Resources> resources;
+    private:
+        uint64_t seed;
+
         int width;
+
         int height;
+
         std::unique_ptr<Random> random;
+
         std::unique_ptr<uint8_t[]> terrainMap;
+
         std::unique_ptr<uint8_t[]> objectMap;
-        std::vector<std::unique_ptr<Object>> objects;
+
+        std::vector<std::unique_ptr<Nature>> natures;
+
+        std::vector<std::unique_ptr<House>> houses;
+
         std::vector<std::unique_ptr<City>> cities;
+
         std::vector<std::unique_ptr<Vehicle>> vehicles;
 
-        World(std::shared_ptr<SDL_Renderer> renderer, std::shared_ptr<Resources> resources, int width, int height, int seed);
+    public:
+        World(uint64_t seed, int width, int height);
+
+        uint64_t getSeed() const;
+
+        int getWidth() const;
+
+        int getHeight() const;
 
         void update(float delta);
 
-        void draw(const Camera *camera);
+        void draw(Canvas *canvas, const Camera *camera) const;
 };

@@ -1,22 +1,17 @@
-// VroemVroem - World Object
-
-#include <iostream>
+// VroemVroem - World
 
 #include "world.hpp"
-#include <vector>
-#include <memory>
-#include <SDL2/SDL.h>
-#include "utils.hpp"
 #include "noise.hpp"
-#include "resources.hpp"
 #include "random.hpp"
-#include "object.hpp"
+#include "terrain.hpp"
+#include "nature.hpp"
+#include "house.hpp"
 #include "city.hpp"
-class World;
 #include "camera.hpp"
+#include "utils.hpp"
 
-World::World(std::shared_ptr<SDL_Renderer> renderer, std::shared_ptr<Resources> resources, int width, int height, int seed)
-    : renderer(renderer), resources(resources), width(width), height(height)
+World::World(uint64_t seed, int width, int height)
+    : seed(seed), width(width), height(height)
 {
     random = std::make_unique<Random>(seed);
 
@@ -31,93 +26,108 @@ World::World(std::shared_ptr<SDL_Renderer> renderer, std::shared_ptr<Resources> 
     objectsNoise.SetNoiseType(FastNoiseLite::NoiseType_OpenSimplex2);
     objectsNoise.SetSeed(seed + 1);
 
-    // Generate terrain and nature objects
-    for (int y = 0; y < height; y++) {
-        for (int x = 0; x < width; x++) {
-            float h = heightNoise.GetNoise((float)x, (float)y);
-            float o = objectsNoise.GetNoise((float)x, (float)y);
+    // Generate terrain and natures
+    for (float y = 0; y < height; y++) {
+        for (float x = 0; x < width; x++) {
+            float h = heightNoise.GetNoise(x, y);
+            float o = objectsNoise.GetNoise(x, y);
 
             if (h >= 0.9) {
-                terrainMap[y * width + x] = random->randomInt(10, 11);
+                terrainMap[y * width + x] = random->random(static_cast<int>(Terrain::Type::SNOW1), static_cast<int>(Terrain::Type::SNOW2));
             }
 
             else if (h >= 0.8) {
-                if (o >= 0.2 && random->randomInt(1, 6) == 1) {
-                    objects.push_back(std::make_unique<Object>(objects.size(), 8, x, y));
+                if (o >= 0.2 && random->random(1, 6) == 1) {
+                    natures.push_back(std::make_unique<Nature>(natures.size(), Nature::Type::GOLD, x, y));
                     objectMap[y * width + x] = 1;
                 }
-                else if (o < 0.2 && random->randomInt(1, 6) == 1) {
-                    objects.push_back(std::make_unique<Object>(objects.size(), 9, x, y));
+                else if (o < 0.2 && random->random(1, 6) == 1) {
+                    natures.push_back(std::make_unique<Nature>(natures.size(), Nature::Type::STONE, x, y));
                     objectMap[y * width + x] = 1;
                 }
 
-                terrainMap[y * width + x] = random->randomInt(8, 9);
+                terrainMap[y * width + x] = random->random(static_cast<int>(Terrain::Type::STONE1), static_cast<int>(Terrain::Type::STONE2));
             }
 
             else if (h >= 0.7) {
-                terrainMap[y * width + x] = random->randomInt(6, 7);
+                terrainMap[y * width + x] = random->random(static_cast<int>(Terrain::Type::DIRT1), static_cast<int>(Terrain::Type::DIRT2));
             }
 
             else if (h >= 0.1) {
-                if (h >= 0.4 && o >= 0.3 && random->randomInt(1, random->randomInt(1, 2)) == 1) {
-                    if (random->randomInt(1, 4) <= 3) {
-                        objects.push_back(std::make_unique<Object>(objects.size(), random->randomInt(2, 5), x, y));
+                if (h >= 0.4 && o >= 0.3 && random->random(1, random->random(1, 2)) == 1) {
+                    if (random->random(1, 4) <= 3) {
+                        natures.push_back(std::make_unique<Nature>(
+                            natures.size(),
+                            static_cast<Nature::Type>(random->random(static_cast<int>(Nature::Type::BEECH), static_cast<int>(Nature::Type::FIR_SMALL))),
+                            x,
+                            y
+                        ));
                     } else {
-                        objects.push_back(std::make_unique<Object>(objects.size(), random->randomInt(6, 7), x, y));
+                        natures.push_back(std::make_unique<Nature>(
+                            natures.size(),
+                            static_cast<Nature::Type>(random->random(static_cast<int>(Nature::Type::TRUNK), static_cast<int>(Nature::Type::TRUNK_SMALL))),
+                            x,
+                            y
+                        ));
                     }
                     objectMap[y * width + x] = 1;
                 }
-                else if (o < 0.4 && random->randomInt(1, 15) == 1) {
-                    objects.push_back(std::make_unique<Object>(objects.size(), random->randomInt(0, 1), x, y));
+                else if (o < 0.4 && random->random(1, 15) == 1) {
+                    natures.push_back(std::make_unique<Nature>(
+                        natures.size(),
+                        static_cast<Nature::Type>(random->random(static_cast<int>(Nature::Type::BUSHES), static_cast<int>(Nature::Type::BERRIES))),
+                        x,
+                        y
+                    ));
                     objectMap[y * width + x] = 1;
                 }
 
-                terrainMap[y * width + x] = random->randomInt(4, 5);
+                terrainMap[y * width + x] = random->random(static_cast<int>(Terrain::Type::GRASS1), static_cast<int>(Terrain::Type::GRASS2));
             }
 
             else if (h >= -0.1) {
-                terrainMap[y * width + x] = random->randomInt(2, 3);
+                terrainMap[y * width + x] = random->random(static_cast<int>(Terrain::Type::SAND1), static_cast<int>(Terrain::Type::SAND2));
             }
 
             else if (h >= -0.6) {
-                terrainMap[y * width + x] = 1;
+                terrainMap[y * width + x] = static_cast<int>(Terrain::Type::WATER);
             }
 
             else {
-                terrainMap[y * width + x] = 0;
+                terrainMap[y * width + x] = static_cast<int>(Terrain::Type::WATER_DEEP);
             }
         }
     }
 
     // Generate cities
     for (int i = 0; i < sqrt(height * width) / 3; i++) {
-        int x;
-        int y;
+        float x;
+        float y;
 
         do {
-            x = random->randomInt(0, width - 1);
-            y = random->randomInt(0, height - 1);
+            x = random->random(0, width - 1);
+            y = random->random(0, height - 1);
         } while (terrainMap[y * width + x] <= 2);
 
-        cities.push_back(std::make_unique<City>(cities.size(), std::move(City::randomName(random.get())), x, y, 0));
+        cities.push_back(std::make_unique<City>(cities.size(), City::randomName(random.get()), x, y, 0));
     }
 
     // Generate houses
     for (auto &city : cities) {
-        int target_population = random->randomInt(50, random->randomInt(100, random->randomInt(200, random->randomInt(300, 1000))));
-        int size = ceil(target_population / random->randomInt(20, random->randomInt(20, 30)));
+        int target_population = random->random(50, random->random(100, random->random(200, random->random(300, 1000))));
+        int spread = ceil(target_population / random->random(20, random->random(20, 30)));
         for (int j = 0; j < ceil(target_population / 4); j++) {
-            int x;
-            int y;
+            float x;
+            float y;
             int attempt = 0;
             bool foundPosition = false;
             do {
-                x = city->x + random->randomInt(-size, size);
-                y = city->y + random->randomInt(-size, size);
+                x = city->getX() + random->random(-spread, spread);
+                y = city->getY() + random->random(-spread, spread);
 
                 if (
                     x >= 0 && y >= 0 && x < width && y < height &&
-                    terrainMap[y * width +x] > 2 &&
+                    terrainMap[y * width +x] >= static_cast<int>(Terrain::Type::SAND1) &&
                     objectMap[y * width + x] == 0
                 ) {
                     foundPosition = true;
@@ -128,100 +138,99 @@ World::World(std::shared_ptr<SDL_Renderer> renderer, std::shared_ptr<Resources> 
             } while (!foundPosition && attempt == 10);
 
             if (foundPosition) {
-                auto house = std::make_unique<Object>(objects.size(), random->randomInt(10, 13), x, y);
-                objects.push_back(std::move(house));
+                int population = random->random(2, 6);
+                std::unique_ptr<House> house = std::make_unique<House>(
+                    houses.size(),
+                    static_cast<House::Type>(random->random(static_cast<int>(House::Type::HOUSE), static_cast<int>(House::Type::SHOP))),
+                    x,
+                    y,
+                    population
+                );
+                houses.push_back(std::move(house));
                 objectMap[y * width + x] = 1;
-                city->population += random->randomInt(2, 6);
+                city->setPopulation(city->getPopulation() + population);
             }
         }
     }
 
     // Generate vehicles
     for (int i = 0; i < sqrt(height * width) / 3; i++) {
-        int x;
-        int y;
+        float x;
+        float y;
 
         do {
-            x = random->randomInt(0, width - 1);
-            y = random->randomInt(0, height - 1);
+            x = random->random(0, width - 1);
+            y = random->random(0, height - 1);
         } while (terrainMap[y * width + x] <= 2);
 
-        vehicles.push_back(std::make_unique<Vehicle>(vehicles.size(), random->randomInt(0, 5), (float)x, (float)y, degreesToRadians(random->randomInt(0, 360))));
+        vehicles.push_back(std::make_unique<Vehicle>(
+            vehicles.size(),
+            static_cast<Vehicle::Type>(random->random(static_cast<int>(Vehicle::Type::STANDARD), static_cast<int>(Vehicle::Type::MOTOR_CYCLE))),
+            x,
+            y,
+            static_cast<Vehicle::Color>(random->random(static_cast<int>(Vehicle::Color::BLACK), static_cast<int>(Vehicle::Color::YELLOW))),
+            radians(random->random(0, 360))
+        ));
     }
 }
 
-void World::update(float delta) {
-    (void)delta;
+uint64_t World::getSeed() const {
+    return seed;
 }
 
-void World::draw(const Camera *camera) {
-    // Get renderer size
-    int gameWidth, gameHeight;
-    SDL_GetRendererOutputSize(renderer.get(), &gameWidth, &gameHeight);
+int World::getWidth() const {
+    return width;
+}
+
+int World::getHeight() const {
+    return height;
+}
+
+void World::update(float delta) {
+    // Update vehicles
+    for (auto &vehicle : vehicles) {
+        vehicle->update(delta);
+    }
+}
+
+void World::draw(Canvas *canvas, const Camera *camera) const {
+    std::unique_ptr<Rect> canvasRect = canvas->getRect();
 
     // Draw terrain tiles
     for (int y = 0; y < height; y++) {
         for (int x = 0; x < width; x++) {
+            int tileSize = Camera::zoomLevels[camera->getZoom()];
+
             Rect tileRect = {
-                (int)(x * camera->tileSize - (camera->x * camera->tileSize - gameWidth / 2)),
-                (int)(y * camera->tileSize - (camera->y * camera->tileSize - gameHeight / 2)),
-                camera->tileSize,
-                camera->tileSize
+                static_cast<int>(x * tileSize - (camera->getX() * tileSize - canvasRect->width / 2)),
+                static_cast<int>(y * tileSize - (camera->getY() * tileSize - canvasRect->height / 2)),
+                tileSize,
+                tileSize
             };
 
-            if (tileRect.x + tileRect.width >= 0 && tileRect.y + tileRect.height >= 0 && tileRect.x < gameWidth && tileRect.y < gameHeight) {
-                const Image *terrainImage = resources->terrainImages[terrainMap[y * width + x]].get();
-                terrainImage->draw(&tileRect);
+            if (Rect::collision(canvasRect.get(), &tileRect)) {
+                Terrain::getImage(static_cast<Terrain::Type>(terrainMap[y * width + x]))->draw(&tileRect);
             }
         }
     }
 
-    // Draw objects
-    for (auto &object : objects) {
-        Rect objectRect = {
-            (int)(object->x * camera->tileSize - (camera->x * camera->tileSize - gameWidth / 2)),
-            (int)(object->y * camera->tileSize - (camera->y * camera->tileSize - gameHeight / 2)),
-            camera->tileSize,
-            camera->tileSize
-        };
+    // Draw natures
+    for (auto &nature : natures) {
+        nature->draw(canvas, camera);
+    }
 
-        if (objectRect.x + objectRect.width >= 0 && objectRect.y + objectRect.height >= 0 && objectRect.x < gameWidth && objectRect.y < gameHeight) {
-            const Image *objectImage = resources->objectImages[object->type].get();
-            objectImage->draw(&objectRect);
-        }
+    // Draw houses
+    for (auto &house : houses) {
+        house->draw(canvas, camera);
+    }
+
+    // Draw cities
+    for (auto &city : cities) {
+        city->draw(canvas, camera);
     }
 
     // Draw vehicles
     for (auto &vehicle : vehicles) {
-        Rect vehicleRect = {
-            (int)(vehicle->x * camera->tileSize - (camera->x * camera->tileSize - gameWidth / 2)),
-            (int)(vehicle->y * camera->tileSize - (camera->y * camera->tileSize - gameHeight / 2)),
-            camera->tileSize,
-            camera->tileSize
-        };
-
-        if (vehicleRect.x + vehicleRect.width >= 0 && vehicleRect.y + vehicleRect.height >= 0 && vehicleRect.x < gameWidth && vehicleRect.y < gameHeight) {
-            const Image *vehicleImage = resources->blueVehicleImages[vehicle->type].get();
-            vehicleImage->draw(&vehicleRect, vehicle->angle);
-        }
-    }
-
-    // Draw city names
-    for (auto &city : cities) {
-        char cityLabel[128];
-        sprintf(cityLabel, "%s (%d)", city->name.get(), city->population);
-
-        Rect cityLabelRect;
-        cityLabelRect.height = camera->tileSize / 2;
-        cityLabelRect.width = resources->textFont->measure(cityLabel, cityLabelRect.height);
-        cityLabelRect.x = (int)(city->x * camera->tileSize - (camera->x * camera->tileSize - gameWidth / 2)) - cityLabelRect.width / 2;
-        cityLabelRect.y = (int)(city->y * camera->tileSize - (camera->y * camera->tileSize - gameHeight / 2)) - cityLabelRect.height / 2;
-
-        if (cityLabelRect.x + cityLabelRect.width >= 0 && cityLabelRect.y + cityLabelRect.height >= 0 && cityLabelRect.x < gameWidth && cityLabelRect.y < gameHeight) {
-            if (camera->zoomLevel >= 2) {
-                // auto cityLabelImage = resources->textFont->render(renderer, cityLabel, cityLabelRect.height, RGB(255, 255, 255));
-                // cityLabelImage->draw(&cityLabelRect);
-            }
-        }
+        vehicle->draw(canvas, camera);
     }
 }

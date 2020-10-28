@@ -1,13 +1,18 @@
-// VroemVroem - Game Object
+// VroemVroem - Game
 
 #include "game.hpp"
 #include <iostream>
-#include <SDL2/SDL.h>
-#include "utils.hpp"
-#include "resources.hpp"
 #include "image.hpp"
+#include "rect.hpp"
+#include "fonts.hpp"
+#include "terrain.hpp"
+#include "nature.hpp"
+#include "house.hpp"
+#include "vehicle.hpp"
 
-Game::Game() {
+Game::Game(const char *title, int width, int height, bool fullscreen)
+    : title(title), width(width), height(height)
+{
     // Create window
     window = std::unique_ptr<SDL_Window, SDL_deleter>(SDL_CreateWindow(title, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, width, height, SDL_WINDOW_RESIZABLE));
     if (!window) {
@@ -15,30 +20,56 @@ Game::Game() {
         exit(EXIT_FAILURE);
     }
 
-    SDL_SetWindowMinimumSize(window.get(), minWidth, minHeight);
+    SDL_SetWindowMinimumSize(window.get(), width / 2, height / 2);
 
     #if DEBUG
         SDL_MaximizeWindow(window.get());
     #endif
 
-    // Create renderer
-    renderer = std::shared_ptr<SDL_Renderer>(SDL_CreateRenderer(window.get(), -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC), SDL_DestroyRenderer);
-    if (!renderer) {
-        std::cerr << "[ERROR] Can't create the SDL renderer: " << SDL_GetError() << std::endl;
-        exit(EXIT_FAILURE);
-    }
+    setFullscreen(fullscreen);
 
-    // Load resources
-    resources = std::make_shared<Resources>(renderer);
+    // Create canvas
+    canvas = std::make_shared<Canvas>(window.get());
+
+    // Load fonts
+    Fonts::getInstance();
+
+    // Load images
+    Terrain::loadImages(canvas);
+    Nature::loadImages(canvas);
+    House::loadImages(canvas);
+    Vehicle::loadImages(canvas);
 
     // Generate world
-    int seed = 1;
-    int width = 512;
-    int height = 512;
+    world = std::make_shared<World>(1, 512, 512);
 
-    world = std::make_shared<World>(renderer, resources, width, height, seed);
+    camera = std::make_unique<Camera>(static_cast<float>(world->getWidth()) / 2, static_cast<float>(world->getHeight()) / 2,
+        world->getWidth(), world->getHeight(), 2);
+}
 
-    camera = std::make_unique<Camera>(world, (float)width / 2, (float)height / 2, 2);
+const char *Game::getTitle() const {
+    return title;
+}
+
+int Game::getWidth() const {
+    return width;
+}
+
+int Game::getHeight() const {
+    return height;
+}
+
+bool Game::getFullscreen() const {
+    return fullscreen;
+}
+
+void Game::setFullscreen(bool fullscreen) {
+    this->fullscreen = fullscreen;
+    if (fullscreen) {
+        SDL_SetWindowFullscreen(window.get(), SDL_WINDOW_FULLSCREEN_DESKTOP);
+    } else {
+        SDL_SetWindowFullscreen(window.get(), 0);
+    }
 }
 
 void Game::handleEvent(const SDL_Event *event) {
@@ -48,13 +79,7 @@ void Game::handleEvent(const SDL_Event *event) {
     // Handle key down events
     if (event->type == SDL_KEYUP) {
         if (event->key.keysym.sym == SDLK_F11) {
-            if (!fullscreen) {
-                fullscreen = true;
-                SDL_SetWindowFullscreen(window.get(), SDL_WINDOW_FULLSCREEN_DESKTOP);
-            } else {
-                fullscreen = false;
-                SDL_SetWindowFullscreen(window.get(), 0);
-            }
+            setFullscreen(!fullscreen);
         }
     }
 
@@ -68,7 +93,7 @@ void Game::handleEvent(const SDL_Event *event) {
 
     // Handle window close events
     if (event->type == SDL_QUIT) {
-        running = false;
+        stop();
     }
 }
 
@@ -77,24 +102,28 @@ void Game::update(float delta) {
     world->update(delta);
 }
 
-void Game::draw() {
+void Game::draw() const {
+    SDL_Renderer *renderer = canvas->getRenderer();
+
     // Clear screen
-    SDL_SetRenderDrawColor(renderer.get(), 17, 17, 17, 255);
-    SDL_RenderClear(renderer.get());
+    SDL_SetRenderDrawColor(renderer, 17, 17, 17, 255);
+    SDL_RenderClear(renderer);
 
     // Draw world with camera
-    world->draw(camera.get());
+    world->draw(canvas.get(), camera.get());
+
+    int tileSize = Camera::zoomLevels[camera->getZoom()];
 
     // Draw debug label
     char debugLabel[128];
-    sprintf(debugLabel, "camera.x = %.02f, camera.y = %.02f, camera.tileSize = %d", camera->x, camera->y, camera->tileSize);
+    sprintf(debugLabel, "camera.x = %.02f, camera.y = %.02f, camera.tileSize = %d", camera->getX(), camera->getY(), tileSize);
 
-    auto debugLabelImage = resources->textFont->render(renderer, debugLabel, 32, RGB(255, 255, 255));
-    Rect debugLabelRect = { 16, 16, debugLabelImage->width, debugLabelImage->height };
+    std::unique_ptr<Image> debugLabelImage = Fonts::getInstance()->getTextFont()->render(canvas, debugLabel, 32, RGB(255, 255, 255));
+    Rect debugLabelRect = { 16, 16, debugLabelImage->getWidth(), debugLabelImage->getHeight() };
     debugLabelImage->draw(&debugLabelRect);
 
     // Update screen
-    SDL_RenderPresent(renderer.get());
+    SDL_RenderPresent(renderer);
 }
 
 void Game::start() {
@@ -112,7 +141,7 @@ void Game::start() {
 
         // Calculate new delta via old and new time
         time = SDL_GetPerformanceCounter();
-        float delta = ((time - oldTime) * 1000) / (float)SDL_GetPerformanceFrequency();
+        float delta = static_cast<double>((time - oldTime) * 1000) / SDL_GetPerformanceFrequency();
 
         // Update game
         update(delta);
@@ -123,4 +152,8 @@ void Game::start() {
         // Update old time
         oldTime = time;
     }
+}
+
+void Game::stop() {
+    running = false;
 }

@@ -1,39 +1,57 @@
-// VroemVroem - Camera Object Header
+// VroemVroem - Camera Header
 
 #pragma once
 
-#include <memory>
 #include <SDL2/SDL.h>
-class Camera;
-#include "world.hpp"
 
 class Camera {
     public:
-        static const int ZOOM_LEVELS[];
+        static const int zoomLevels[];
 
-        std::shared_ptr<World> world;
-
+    private:
         float x;
+
         float y;
+
+        int width;
+
+        int height;
+
+        int zoom;
 
         struct {
             bool enabled;
 
             struct {
+                float x;
+                float y;
+            } begin;
+
+            struct {
                 int x;
                 int y;
             } mouse;
-
-            struct {
-                float x;
-                float y;
-            } oldCamera;
         } drag;
 
-        int zoomLevel;
-        int tileSize;
 
-        Camera(std::shared_ptr<World> world, float x, float y, int zoomLevel);
+    public:
+        Camera(float x, float y, int width, int height, int zoom);
+
+        float getX() const;
+
+        void setX(float x);
+
+        float getY() const;
+
+        void setY(float y);
+
+        int getWidth() const;
+
+        int getHeight() const;
+
+        int getZoom() const;
+
+        void setZoom(int zoom);
 
         void handleEvent(const SDL_Event *event);
 };
