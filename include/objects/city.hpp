@@ -2,11 +2,13 @@
 
 #pragma once
 
-#include "object.hpp"
+#include "objects/object.hpp"
 #include <memory>
 #include "canvas.hpp"
 #include "camera.hpp"
 #include "random.hpp"
+
+namespace Objects {
 
 class City : public Object {
     private:
@@ -27,3 +29,5 @@ class City : public Object {
 
         static const char *randomName(Random *random);
 };
+
+}

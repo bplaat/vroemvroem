@@ -1,6 +1,8 @@
 // VroemVroem - Object
 
-#include "object.hpp"
+#include "objects/object.hpp"
+
+namespace Objects {
 
 Object::Object(int id, float x, float y)
     : id(id), x(x), y(y) {}
@@ -19,4 +21,6 @@ float Object::getY() const {
 
 void Object::update(float delta) {
     (void)delta;
+}
+
 }

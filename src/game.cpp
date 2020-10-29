@@ -5,10 +5,10 @@
 #include "image.hpp"
 #include "rect.hpp"
 #include "fonts.hpp"
-#include "terrain.hpp"
-#include "nature.hpp"
-#include "house.hpp"
-#include "vehicle.hpp"
+#include "objects/terrain.hpp"
+#include "objects/nature.hpp"
+#include "objects/house.hpp"
+#include "objects/vehicle.hpp"
 
 Game::Game(const char *title, int width, int height, bool fullscreen)
     : title(title), width(width), height(height)
@@ -19,26 +19,31 @@ Game::Game(const char *title, int width, int height, bool fullscreen)
         std::cerr << "[ERROR] Can't create the SDL window: " << SDL_GetError() << std::endl;
         exit(EXIT_FAILURE);
     }
-
     SDL_SetWindowMinimumSize(window.get(), width / 2, height / 2);
 
+    // Make window maximezed when debugging
     #if DEBUG
         SDL_MaximizeWindow(window.get());
     #endif
 
+    // Set window fullscreen
     setFullscreen(fullscreen);
 
     // Create canvas
     canvas = std::make_shared<Canvas>(window.get());
 
+    // Set window icon
+    // std::unique_ptr<Image> iconImage = std::make_unique<Image>(canvas, "assets/images/icon.png", false);
+    // SDL_SetWindowIcon(window.get(), iconImage->getSurface());
+
     // Load fonts
     Fonts::getInstance();
 
     // Load images
-    Terrain::loadImages(canvas);
-    Nature::loadImages(canvas);
-    House::loadImages(canvas);
-    Vehicle::loadImages(canvas);
+    Objects::Terrain::loadImages(canvas);
+    Objects::Nature::loadImages(canvas);
+    Objects::House::loadImages(canvas);
+    Objects::Vehicle::loadImages(canvas);
 
     // Generate world
     world = std::make_shared<World>(1, 512, 512);

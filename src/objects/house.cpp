@@ -1,7 +1,9 @@
 // VroemVroem - House
 
-#include "house.hpp"
+#include "objects/house.hpp"
 #include "rect.hpp"
+
+namespace Objects {
 
 std::unique_ptr<Image> House::images[static_cast<size_t>(House::Type::size)];
 
@@ -42,4 +44,6 @@ void House::loadImages(std::shared_ptr<Canvas> canvas) {
 
 const Image *House::getImage(House::Type type) {
     return images[static_cast<size_t>(type)].get();
+}
+
 }

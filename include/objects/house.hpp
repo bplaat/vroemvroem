@@ -2,11 +2,13 @@
 
 #pragma once
 
-#include "object.hpp"
+#include "objects/object.hpp"
 #include <memory>
 #include "image.hpp"
 #include "canvas.hpp"
 #include "camera.hpp"
+
+namespace Objects {
 
 class House : public Object {
     public:
@@ -38,3 +40,5 @@ class House : public Object {
 
         static const Image *getImage(House::Type type);
 };
+
+}

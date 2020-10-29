@@ -10,11 +10,11 @@ if [ "$1" == "clean" ]; then
 elif [ "$1" == "release" ]; then
     mkdir -p target/release
 
-    for file in src/*.c; do
+    for file in $(find src -name "*.c"); do
         gcc -Os $release_flags -Iinclude -c $file -o target/release/$(basename $file .c).o
     done
 
-    for file in src/*.cpp; do
+    for file in $(find src -name "*.cpp"); do
         g++ -Os -Iinclude -c $file -o target/release/$(basename $file .cpp).o
     done
 
@@ -38,7 +38,7 @@ else
 
     mkdir -p target/debug
 
-    for file in src/*.c; do
+    for file in $(find src -name "*.c"); do
         object="target/debug/$(basename $file .c).o"
         if [[ $file -nt $object ]]; then
             rm -f $object
@@ -46,7 +46,7 @@ else
         fi
     done
 
-    for file in src/*.cpp; do
+    for file in $(find src -name "*.cpp"); do
         object="target/debug/$(basename $file .cpp).o"
         if [[ $file -nt $object ]]; then
             rm -f $object

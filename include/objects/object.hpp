@@ -6,6 +6,8 @@
 #include "canvas.hpp"
 #include "camera.hpp"
 
+namespace Objects {
+
 class Object {
     protected:
         int id;
@@ -27,3 +29,5 @@ class Object {
 
         virtual void draw(std::shared_ptr<Canvas> canvas, const Camera *camera) const = 0;
 };
+
+}

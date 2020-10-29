@@ -6,6 +6,8 @@
 #include "image.hpp"
 #include "canvas.hpp"
 
+namespace Objects {
+
 class Terrain {
     public:
         enum class Type {
@@ -32,3 +34,5 @@ class Terrain {
 
         static const Image *getImage(Terrain::Type type);
 };
+
+}

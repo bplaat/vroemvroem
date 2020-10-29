@@ -2,9 +2,10 @@
 A highway simulator school project
 
 ## Things to do:
-- Add cars
-- Add random roads (free from grid so a polyline thing)
-- Add car drive AI
-- Add trafic control things
+- Multi page UI
+- Inspect objects UI
+- Add random multi lane roads (free from grid so a polyline thing)
+- Add car driver AI
 - Add take over car
 - Add road construction tools
+- Add trafic control things

@@ -1,6 +1,8 @@
 // VroemVroem - Terrain
 
-#include "terrain.hpp"
+#include "objects/terrain.hpp"
+
+namespace Objects {
 
 std::unique_ptr<Image> Terrain::images[static_cast<size_t>(Terrain::Type::size)];
 
@@ -21,4 +23,6 @@ void Terrain::loadImages(std::shared_ptr<Canvas> canvas) {
 
 const Image *Terrain::getImage(Terrain::Type type) {
     return images[static_cast<size_t>(type)].get();
+}
+
 }

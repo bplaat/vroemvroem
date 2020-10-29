@@ -5,10 +5,10 @@
 #include <memory>
 #include "random.hpp"
 #include <vector>
-#include "nature.hpp"
-#include "house.hpp"
-#include "city.hpp"
-#include "vehicle.hpp"
+#include "objects/nature.hpp"
+#include "objects/house.hpp"
+#include "objects/city.hpp"
+#include "objects/vehicle.hpp"
 #include "camera.hpp"
 
 class World {
@@ -25,13 +25,13 @@ class World {
 
         std::unique_ptr<uint8_t[]> objectMap;
 
-        std::vector<std::unique_ptr<Nature>> natures;
+        std::vector<std::unique_ptr<Objects::Nature>> natures;
 
-        std::vector<std::unique_ptr<House>> houses;
+        std::vector<std::unique_ptr<Objects::House>> houses;
 
-        std::vector<std::unique_ptr<City>> cities;
+        std::vector<std::unique_ptr<Objects::City>> cities;
 
-        std::vector<std::unique_ptr<Vehicle>> vehicles;
+        std::vector<std::unique_ptr<Objects::Vehicle>> vehicles;
 
     public:
         World(uint64_t seed, int width, int height);

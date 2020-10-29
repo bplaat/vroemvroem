@@ -2,25 +2,27 @@
 
 #pragma once
 
-#include "object.hpp"
+#include "objects/object.hpp"
 #include <memory>
 #include "image.hpp"
 #include "canvas.hpp"
 #include "camera.hpp"
 
-struct VehicleStats {
-    const char *name;
-    int width;
-    int height;
-    int maxForwardVelocity;
-    int forwardAcceleration;
-    int maxBackwardVelocity;
-    int backwardAcceleration;
-    float turningSpeed;
-};
+namespace Objects {
 
 class Vehicle : public Object {
     public:
+        struct Stats {
+            const char *name;
+            int width;
+            int height;
+            int maxForwardVelocity;
+            int forwardAcceleration;
+            int maxBackwardVelocity;
+            int backwardAcceleration;
+            float turningSpeed;
+        };
+
         enum class Type {
             STANDARD = 0,
             MINI,
@@ -41,7 +43,7 @@ class Vehicle : public Object {
         };
 
     private:
-        static VehicleStats stats[static_cast<size_t>(Vehicle::Type::size)];
+        static Vehicle::Stats stats[static_cast<size_t>(Vehicle::Type::size)];
 
         static std::unique_ptr<Image> images[static_cast<size_t>(Vehicle::Color::size)][static_cast<size_t>(Vehicle::Type::size)];
 
@@ -72,9 +74,11 @@ class Vehicle : public Object {
 
         void draw(std::shared_ptr<Canvas> canvas, const Camera *camera) const;
 
-        static const VehicleStats *getStats(Vehicle::Type type);
+        static const Vehicle::Stats *getStats(Vehicle::Type type);
 
         static void loadImages(std::shared_ptr<Canvas> canvas);
 
         static const Image *getImage(Vehicle::Type type, Vehicle::Color color);
 };
+
+}

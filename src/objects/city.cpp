@@ -1,12 +1,14 @@
 // VroemVroem - City
 
-#include "city.hpp"
+#include "objects/city.hpp"
 #include <memory>
 #include "fonts.hpp"
 #include "font.hpp"
 #include "rect.hpp"
 #include "utils.hpp"
 #include <cstring>
+
+namespace Objects {
 
 City::City(int id, const char *name, float x, float y, int population)
     : Object::Object(id, x, y), name(name), population(population) {}
@@ -64,4 +66,6 @@ const char *City::randomName(Random *random) {
     randomName[pos] = '\0';
 
     return randomName;
+}
+
 }

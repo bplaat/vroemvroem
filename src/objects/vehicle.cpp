@@ -1,10 +1,12 @@
 // VroemVroem - Vehicle
 
-#include "vehicle.hpp"
+#include "objects/vehicle.hpp"
 #include <cmath>
 #include "rect.hpp"
 
-VehicleStats Vehicle::stats[static_cast<size_t>(Vehicle::Type::size)] = {
+namespace Objects {
+
+Vehicle::Stats Vehicle::stats[static_cast<size_t>(Vehicle::Type::size)] = {
     // Standard car
     {
         "Normal Baby",  // name
@@ -115,7 +117,7 @@ void Vehicle::update(float delta) {
 void Vehicle::draw(std::shared_ptr<Canvas> canvas, const Camera *camera) const {
     std::unique_ptr<Rect> canvasRect = canvas->getRect();
 
-    const VehicleStats *stats = getStats(type);
+    const Vehicle::Stats *stats = getStats(type);
 
     int tileSize = Camera::zoomLevels[camera->getZoom()];
 
@@ -131,7 +133,7 @@ void Vehicle::draw(std::shared_ptr<Canvas> canvas, const Camera *camera) const {
     }
 }
 
-const VehicleStats *Vehicle::getStats(Vehicle::Type type) {
+const Vehicle::Stats *Vehicle::getStats(Vehicle::Type type) {
     return &stats[static_cast<size_t>(type)];
 }
 
@@ -179,4 +181,6 @@ void Vehicle::loadImages(std::shared_ptr<Canvas> canvas) {
 
 const Image *Vehicle::getImage(Vehicle::Type type, Vehicle::Color color) {
     return images[static_cast<size_t>(color)][static_cast<size_t>(type)].get();
+}
+
 }

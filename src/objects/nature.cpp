@@ -1,7 +1,9 @@
 // VroemVroem - Nature
 
-#include "nature.hpp"
+#include "objects/nature.hpp"
 #include "rect.hpp"
+
+namespace Objects {
 
 std::unique_ptr<Image> Nature::images[static_cast<size_t>(Nature::Type::size)];
 
@@ -44,4 +46,6 @@ void Nature::loadImages(std::shared_ptr<Canvas> canvas) {
 
 const Image *Nature::getImage(Nature::Type type) {
     return images[static_cast<size_t>(type)].get();
+}
+
 }
