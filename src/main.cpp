@@ -13,8 +13,7 @@ int main() {
         return EXIT_FAILURE;
     }
 
-    Game game("VroemVroem", 1280, 720, false);
-    game.start();
+    Game::getInstance()->start();
 
     SDL_Quit();
     return EXIT_SUCCESS;

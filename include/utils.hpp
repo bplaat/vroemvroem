@@ -2,15 +2,10 @@
 
 #pragma once
 
-#include <cstdint>
 #include <cmath>
 #include <SDL2/SDL.h>
 #include "stb_image.h"
 #include "stb_truetype.h"
-
-// ### Utils ###
-#define RGB(r, g, b) (uint32_t)((uint8_t)r | ((uint8_t)g << 8) | ((uint8_t)b << 16))
-
 
 // ### Math ###
 

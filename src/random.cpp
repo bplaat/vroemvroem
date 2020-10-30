@@ -2,8 +2,18 @@
 
 #include "random.hpp"
 #include <cmath>
+#include <ctime>
+
+std::unique_ptr<Random> Random::instance = nullptr;
 
 Random::Random(uint64_t seed) : seed(seed) {}
+
+Random *Random::getInstance() {
+    if (!instance) {
+        instance = std::make_unique<Random>(time(nullptr));
+    }
+    return instance.get();
+}
 
 uint64_t Random::getSeed() const {
     return seed;

@@ -9,6 +9,9 @@
 #include "objects/nature.hpp"
 #include "objects/house.hpp"
 #include "objects/vehicle.hpp"
+#include "pages/menu.hpp"
+
+std::unique_ptr<Game> Game::instance = nullptr;
 
 Game::Game(const char *title, int width, int height, bool fullscreen)
     : title(title), width(width), height(height)
@@ -22,9 +25,9 @@ Game::Game(const char *title, int width, int height, bool fullscreen)
     SDL_SetWindowMinimumSize(window.get(), width / 2, height / 2);
 
     // Make window maximezed when debugging
-    #if DEBUG
-        SDL_MaximizeWindow(window.get());
-    #endif
+    // #if DEBUG
+    //     SDL_MaximizeWindow(window.get());
+    // #endif
 
     // Set window fullscreen
     setFullscreen(fullscreen);
@@ -35,21 +38,13 @@ Game::Game(const char *title, int width, int height, bool fullscreen)
     // Set window icon
     // std::unique_ptr<Image> iconImage = std::make_unique<Image>(canvas, "assets/images/icon.png", false);
     // SDL_SetWindowIcon(window.get(), iconImage->getSurface());
+}
 
-    // Load fonts
-    Fonts::getInstance();
-
-    // Load images
-    Objects::Terrain::loadImages(canvas);
-    Objects::Nature::loadImages(canvas);
-    Objects::House::loadImages(canvas);
-    Objects::Vehicle::loadImages(canvas);
-
-    // Generate world
-    world = std::make_shared<World>(1, 512, 512);
-
-    camera = std::make_unique<Camera>(static_cast<float>(world->getWidth()) / 2, static_cast<float>(world->getHeight()) / 2,
-        world->getWidth(), world->getHeight(), 2);
+Game *Game::getInstance() {
+    if (!instance) {
+        instance = std::make_unique<Game>("VroemVroem", 1280, 720, false);
+    }
+    return instance.get();
 }
 
 const char *Game::getTitle() const {
@@ -77,10 +72,19 @@ void Game::setFullscreen(bool fullscreen) {
     }
 }
 
-void Game::handleEvent(const SDL_Event *event) {
-    // Send all events to camera
-    camera->handleEvent(event);
+std::shared_ptr<Canvas> Game::getCanvas() const {
+    return canvas;
+}
 
+Pages::Page *Game::getPage() const {
+    return page.get();
+}
+
+void Game::setPage(std::unique_ptr<Pages::Page> page) {
+    this->page = std::move(page);
+}
+
+void Game::handleEvent(const SDL_Event *event) {
     // Handle key down events
     if (event->type == SDL_KEYUP) {
         if (event->key.keysym.sym == SDLK_F11) {
@@ -96,49 +100,35 @@ void Game::handleEvent(const SDL_Event *event) {
         }
     }
 
+    // Set event to current page
+    page->handleEvent(event);
+
     // Handle window close events
     if (event->type == SDL_QUIT) {
         stop();
     }
 }
 
-void Game::update(float delta) {
-    // Update world
-    world->update(delta);
-}
-
-void Game::draw() const {
-    SDL_Renderer *renderer = canvas->getRenderer();
-
-    // Clear screen
-    SDL_SetRenderDrawColor(renderer, 17, 17, 17, 255);
-    SDL_RenderClear(renderer);
-
-    // Draw world with camera
-    world->draw(canvas, camera.get());
-
-    int tileSize = Camera::zoomLevels[camera->getZoom()];
-
-    // Draw debug label
-    char debugLabel[128];
-    sprintf(debugLabel, "camera.x = %.02f, camera.y = %.02f, camera.tileSize = %d", camera->getX(), camera->getY(), tileSize);
-
-    std::unique_ptr<Image> debugLabelImage = Fonts::getInstance()->getTextFont()->render(canvas, debugLabel, 32, RGB(255, 255, 255));
-    Rect debugLabelRect = { 16, 16, debugLabelImage->getWidth(), debugLabelImage->getHeight() };
-    debugLabelImage->draw(&debugLabelRect);
-
-    // Update screen
-    SDL_RenderPresent(renderer);
-}
-
 void Game::start() {
+    // Load fonts
+    Fonts::getInstance();
+
+    // Load images
+    Objects::Terrain::loadImages(canvas);
+    Objects::Nature::loadImages(canvas);
+    Objects::House::loadImages(canvas);
+    Objects::Vehicle::loadImages(canvas);
+
+    // Create menu page
+    page = std::make_unique<Pages::MenuPage>();
+
     // Old time variable
     uint64_t oldTime = SDL_GetPerformanceCounter();
 
     // Game loop
     running = true;
     while (running) {
-        // Handle events
+        // Handle window events
         SDL_Event event;
         while (SDL_PollEvent(&event)) {
             handleEvent(&event);
@@ -148,11 +138,12 @@ void Game::start() {
         time = SDL_GetPerformanceCounter();
         float delta = static_cast<double>((time - oldTime) * 1000) / SDL_GetPerformanceFrequency();
 
-        // Update game
-        update(delta);
+        // Update current page
+        page->update(delta);
 
-        // Draw game
-        draw();
+        // Draw current page
+        page->draw(canvas.get());
+        SDL_RenderPresent(canvas->getRenderer());
 
         // Update old time
         oldTime = time;

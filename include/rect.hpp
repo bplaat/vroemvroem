@@ -8,5 +8,11 @@ struct Rect {
     int width;
     int height;
 
-    static bool collision(Rect *a, Rect *b);
+    Rect();
+
+    Rect(int x, int y, int width, int height);
+
+    bool containsPoint(int pointX, int pointY);
+
+    bool collides(Rect *other);
 };

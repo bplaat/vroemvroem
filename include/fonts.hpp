@@ -9,7 +9,7 @@ class Fonts {
     private:
         static std::unique_ptr<Fonts> instance;
 
-        std::unique_ptr<Font> headerFont;
+        std::unique_ptr<Font> titleFont;
 
         std::unique_ptr<Font> textFont;
 
@@ -18,7 +18,7 @@ class Fonts {
 
         static const Fonts *getInstance();
 
-        Font *getHeaderFont() const;
+        Font *getTitleFont() const;
 
         Font *getTextFont() const;
 };

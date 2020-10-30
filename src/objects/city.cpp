@@ -41,7 +41,7 @@ void City::draw(std::shared_ptr<Canvas> canvas, const Camera *camera) const {
     cityRect.x = static_cast<int>(x * tileSize - (camera->getX() * tileSize - canvasRect->width / 2)) - cityRect.width / 2;
     cityRect.y = static_cast<int>(y * tileSize - (camera->getY() * tileSize - canvasRect->height / 2)) - cityRect.height / 2;
 
-    if (Rect::collision(canvasRect.get(), &cityRect) && camera->getZoom() >= 2) {
+    if (canvasRect->collides(&cityRect) && camera->getZoom() >= 2) {
         // VERY BUGGY!!!
         // std::unique_ptr<Image> cityLabelImage = textFont->render(canvas, cityLabel, cityRect.height, RGB(255, 255, 255));
         // cityLabelImage->draw(&cityRect);

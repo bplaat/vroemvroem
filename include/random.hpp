@@ -2,14 +2,18 @@
 
 #pragma once
 
-#include <cstdint>
+#include <memory>
 
 class Random {
     private:
+        static std::unique_ptr<Random> instance;
+
         uint64_t seed;
 
     public:
         Random(uint64_t seed);
+
+        static Random *getInstance();
 
         uint64_t getSeed() const;
 

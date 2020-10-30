@@ -26,7 +26,7 @@ void Nature::draw(std::shared_ptr<Canvas> canvas, const Camera *camera) const {
         tileSize
     };
 
-    if (Rect::collision(canvasRect.get(), &natureRect)) {
+    if (canvasRect->collides(&natureRect)) {
         getImage(type)->draw(&natureRect);
     }
 }

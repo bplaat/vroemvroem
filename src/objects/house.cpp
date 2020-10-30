@@ -30,7 +30,7 @@ void House::draw(std::shared_ptr<Canvas> canvas, const Camera *camera) const {
         tileSize
     };
 
-    if (Rect::collision(canvasRect.get(), &houseRect)) {
+    if (canvasRect->collides(&houseRect)) {
         getImage(type)->draw(&houseRect);
     }
 }

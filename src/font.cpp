@@ -47,7 +47,7 @@ int Font::measure(const char *text, int textSize) {
     return width;
 }
 
-std::unique_ptr<Image> Font::render(std::shared_ptr<Canvas> canvas, const char *text, int textSize, uint32_t textColor) {
+std::unique_ptr<Image> Font::render(std::shared_ptr<Canvas> canvas, const char *text, int textSize, const Color *textColor) {
     float scale = stbtt_ScaleForPixelHeight(&fontInfo, textSize);
     int xpadding = textSize / 4;
 
@@ -95,10 +95,10 @@ std::unique_ptr<Image> Font::render(std::shared_ptr<Canvas> canvas, const char *
     for (int y = 0; y < height; y++) {
         for (int x = 0; x < width; x++) {
             int pos = (y * width + x) * 4;
-            coloredBitmap[pos] = textColor & 0xff;
-            coloredBitmap[pos + 1] = (textColor >> 8) & 0xff;
-            coloredBitmap[pos + 2] = (textColor >> 16) & 0xff;
-            coloredBitmap[pos + 3] = bitmap[y * width + x];
+            coloredBitmap[pos] = textColor->red;
+            coloredBitmap[pos + 1] = textColor->green;
+            coloredBitmap[pos + 2] = textColor->blue;
+            coloredBitmap[pos + 3] = bitmap[y * width + x]; // TODO
         }
     }
 

@@ -2,10 +2,10 @@
 
 #include "fonts.hpp"
 
-std::unique_ptr<Fonts> Fonts::instance;
+std::unique_ptr<Fonts> Fonts::instance = nullptr;
 
 Fonts::Fonts() {
-    headerFont = std::make_unique<Font>("assets/fonts/Bangers-Regular.ttf");
+    titleFont = std::make_unique<Font>("assets/fonts/Bangers-Regular.ttf");
 
     textFont = std::make_unique<Font>("assets/fonts/Merriweather-Regular.ttf");
 }
@@ -17,8 +17,8 @@ const Fonts *Fonts::getInstance() {
     return instance.get();
 }
 
-Font *Fonts::getHeaderFont() const {
-    return headerFont.get();
+Font *Fonts::getTitleFont() const {
+    return titleFont.get();
 }
 
 Font *Fonts::getTextFont() const {

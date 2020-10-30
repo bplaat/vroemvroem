@@ -208,29 +208,29 @@ void World::draw(std::shared_ptr<Canvas> canvas, const Camera *camera) const {
                 tileSize
             };
 
-            if (Rect::collision(canvasRect.get(), &tileRect)) {
+            if (canvasRect->collides(&tileRect)) {
                 Objects::Terrain::getImage(static_cast<Objects::Terrain::Type>(terrainMap[y * width + x]))->draw(&tileRect);
             }
         }
     }
 
     // Draw natures
-    for (auto &nature : natures) {
+    for (auto const &nature : natures) {
         nature->draw(canvas, camera);
     }
 
     // Draw houses
-    for (auto &house : houses) {
+    for (auto const &house : houses) {
         house->draw(canvas, camera);
     }
 
     // Draw cities
-    for (auto &city : cities) {
+    for (auto const &city : cities) {
         city->draw(canvas, camera);
     }
 
     // Draw vehicles
-    for (auto &vehicle : vehicles) {
+    for (auto const &vehicle : vehicles) {
         vehicle->draw(canvas, camera);
     }
 }

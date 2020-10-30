@@ -4,8 +4,9 @@
 
 #include <memory>
 #include "stb_truetype.h"
-#include "canvas.hpp"
 #include "image.hpp"
+#include "canvas.hpp"
+#include "color.hpp"
 
 class Font {
     private:
@@ -18,5 +19,5 @@ class Font {
 
         int measure(const char *text, int textSize);
 
-        std::unique_ptr<Image> render(std::shared_ptr<Canvas> canvas, const char *text, int textSize, uint32_t textColor);
+        std::unique_ptr<Image> render(std::shared_ptr<Canvas> canvas, const char *text, int textSize, const Color *textColor);
 };
