@@ -24,7 +24,7 @@ class Widget {
 
         virtual bool handleEvent(const SDL_Event *event);
 
-        virtual void draw(Canvas *canvas) const;
+        virtual void draw(std::shared_ptr<Canvas> canvas) const;
 };
 
 }

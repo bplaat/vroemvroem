@@ -14,7 +14,7 @@ class ImageWidget : public Widget {
     public:
         ImageWidget(std::unique_ptr<Image> image, std::unique_ptr<Rect> rect, std::unique_ptr<Color> backgroundColor, std::function<void()> clickCallback);
 
-        void draw(Canvas *canvas) const;
+        void draw(std::shared_ptr<Canvas> canvas) const;
 };
 
 }

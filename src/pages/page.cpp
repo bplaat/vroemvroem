@@ -18,12 +18,9 @@ bool Page::handleEvent(const SDL_Event *event) {
         }
     }
 
-    if (event->type == SDL_WINDOWEVENT) {
-        if (event->window.event == SDL_WINDOWEVENT_RESIZED) {
-            widgets.clear();
-            createWidgets();
-            return true;
-        }
+    if (event->type == SDL_WINDOWEVENT && event->window.event == SDL_WINDOWEVENT_RESIZED) {
+        widgets.clear();
+        createWidgets();
     }
 
     return false;
@@ -33,9 +30,8 @@ void Page::update(float delta) {
     (void)delta;
 }
 
-void Page::draw(Canvas *canvas) const {
+void Page::draw(std::shared_ptr<Canvas> canvas) const {
     SDL_Renderer *renderer = canvas->getRenderer();
-
     SDL_SetRenderDrawColor(renderer, backgroundColor->red, backgroundColor->blue, backgroundColor->green, backgroundColor->alpha);
     SDL_RenderClear(renderer);
 

@@ -1,13 +1,13 @@
 // VroemVroem - Image Widget
 
-#include "widgets/image.hpp"
+#include "widgets/image_widget.hpp"
 
 namespace Widgets {
 
 ImageWidget::ImageWidget(std::unique_ptr<Image> image, std::unique_ptr<Rect> rect, std::unique_ptr<Color> backgroundColor, std::function<void()> clickCallback)
     : Widget::Widget(std::move(rect), std::move(backgroundColor), std::move(clickCallback)), image(std::move(image)) {}
 
-void ImageWidget::draw(Canvas *canvas) const {
+void ImageWidget::draw(std::shared_ptr<Canvas> canvas) const {
     Widget::draw(canvas);
 
     Rect imageRect = {

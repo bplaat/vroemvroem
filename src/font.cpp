@@ -98,7 +98,7 @@ std::unique_ptr<Image> Font::render(std::shared_ptr<Canvas> canvas, const char *
             coloredBitmap[pos] = textColor->red;
             coloredBitmap[pos + 1] = textColor->green;
             coloredBitmap[pos + 2] = textColor->blue;
-            coloredBitmap[pos + 3] = bitmap[y * width + x]; // TODO
+            coloredBitmap[pos + 3] = bitmap[y * width + x];
         }
     }
 

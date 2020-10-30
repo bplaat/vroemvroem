@@ -10,7 +10,7 @@
 #include "objects/nature.hpp"
 #include "objects/house.hpp"
 #include "objects/vehicle.hpp"
-#include "pages/intro.hpp"
+#include "pages/intro_page.hpp"
 
 std::unique_ptr<Game> Game::instance = nullptr;
 
@@ -26,9 +26,9 @@ Game::Game(const char *title, int width, int height, bool fullscreen)
     SDL_SetWindowMinimumSize(window.get(), width / 2, height / 2);
 
     // Make window maximezed when debugging
-    // #if DEBUG
-    //     SDL_MaximizeWindow(window.get());
-    // #endif
+    #if DEBUG
+    SDL_MaximizeWindow(window.get());
+    #endif
 
     // Set window fullscreen
     setFullscreen(fullscreen);
@@ -36,9 +36,28 @@ Game::Game(const char *title, int width, int height, bool fullscreen)
     // Create canvas
     canvas = std::make_shared<Canvas>(window.get());
 
-    // Set window icon
-    // std::unique_ptr<Image> iconImage = std::make_unique<Image>(canvas, "assets/images/icon.png", false);
-    // SDL_SetWindowIcon(window.get(), iconImage->getSurface());
+    // Set window icon by loading it as surface
+    const char *iconPath = "assets/images/icon.png";
+    int iconWidth, iconHeight, iconChannels;
+    bool iconTransparent = false;
+
+    std::unique_ptr<uint8_t[], stbi_deleter> iconBitmap = std::unique_ptr<uint8_t[], stbi_deleter>(stbi_load(iconPath, &iconWidth, &iconHeight, &iconChannels, iconTransparent ? STBI_rgb_alpha : STBI_rgb));
+    if (!iconBitmap) {
+        std::cerr << "[ERROR] Can't load image: " << iconPath << std::endl;
+        exit(EXIT_FAILURE);
+    }
+
+    std::unique_ptr<SDL_Surface, SDL_deleter> iconSurface = std::unique_ptr<SDL_Surface, SDL_deleter>(SDL_CreateRGBSurfaceFrom(
+        (void *)iconBitmap.get(), iconWidth, iconHeight,
+        iconTransparent ? 32 : 24, iconTransparent ? 4 * iconWidth : 3 * iconWidth,
+        0x000000ff, 0x0000ff00, 0x00ff0000, iconTransparent ? 0xff000000 : 0x00000000
+    ));
+    if (!iconSurface) {
+        std::cerr << "[ERROR] Can't create SDL surface: " << SDL_GetError() << std::endl;
+        exit(EXIT_FAILURE);
+    }
+
+    SDL_SetWindowIcon(window.get(), iconSurface.get());
 }
 
 Game *Game::getInstance() {
@@ -85,29 +104,33 @@ void Game::setPage(std::unique_ptr<Pages::Page> page) {
     this->page = std::move(page);
 }
 
-void Game::handleEvent(const SDL_Event *event) {
+bool Game::handleEvent(const SDL_Event *event) {
     // Handle key down events
     if (event->type == SDL_KEYUP) {
         if (event->key.keysym.sym == SDLK_F11) {
             setFullscreen(!fullscreen);
+            return true;
         }
     }
 
     // Handle window resize events
-    if (event->type == SDL_WINDOWEVENT) {
-        if (event->window.event == SDL_WINDOWEVENT_RESIZED) {
-            width = event->window.data1;
-            height = event->window.data2;
-        }
+    if (event->type == SDL_WINDOWEVENT && event->window.event == SDL_WINDOWEVENT_RESIZED) {
+        width = event->window.data1;
+        height = event->window.data2;
     }
 
     // Set event to current page
-    page->handleEvent(event);
+    if (page->handleEvent(event)) {
+        return true;
+    }
 
     // Handle window close events
     if (event->type == SDL_QUIT) {
         stop();
+        return true;
     }
+
+    return false;
 }
 
 void Game::start() {
@@ -143,7 +166,7 @@ void Game::start() {
         page->update(delta);
 
         // Draw current page
-        page->draw(canvas.get());
+        page->draw(canvas);
         SDL_RenderPresent(canvas->getRenderer());
 
         // Update old time

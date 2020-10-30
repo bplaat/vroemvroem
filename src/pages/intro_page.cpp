@@ -1,10 +1,10 @@
 // VroemVroem - Intro Page
 
-#include "pages/intro.hpp"
+#include "pages/intro_page.hpp"
 #include "game.hpp"
-#include "pages/menu.hpp"
+#include "pages/menu_page.hpp"
 #include "image.hpp"
-#include "widgets/image.hpp"
+#include "widgets/image_widget.hpp"
 #include "widgets/label.hpp"
 #include "fonts.hpp"
 #include <iostream>

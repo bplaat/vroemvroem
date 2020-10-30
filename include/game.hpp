@@ -56,5 +56,5 @@ class Game {
         void stop();
 
     private:
-        void handleEvent(const SDL_Event *event);
+        bool handleEvent(const SDL_Event *event);
 };

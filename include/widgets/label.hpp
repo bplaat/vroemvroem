@@ -17,7 +17,7 @@ class Label : public Widget {
             RIGHT
         };
 
-    private:
+    protected:
         const char *text = nullptr;
 
         Font *font;
@@ -36,7 +36,7 @@ class Label : public Widget {
 
         void setText(const char *text);
 
-        void draw(Canvas *canvas) const;
+        void draw(std::shared_ptr<Canvas> canvas) const;
 };
 
 }

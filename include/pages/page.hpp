@@ -22,11 +22,11 @@ class Page {
 
         virtual bool handleEvent(const SDL_Event *event);
 
-        virtual void createWidgets() = 0;
-
         virtual void update(float delta);
 
-        virtual void draw(Canvas *canvas) const;
+        virtual void draw(std::shared_ptr<Canvas> canvas) const;
+
+        virtual void createWidgets() = 0;
 };
 
 }

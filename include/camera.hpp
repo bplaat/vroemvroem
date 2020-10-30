@@ -54,5 +54,5 @@ class Camera {
 
         void setZoom(int zoom);
 
-        void handleEvent(const SDL_Event *event);
+        bool handleEvent(const SDL_Event *event);
 };

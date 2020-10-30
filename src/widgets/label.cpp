@@ -1,7 +1,6 @@
 // VroemVroem - Label Widget
 
 #include "widgets/label.hpp"
-#include <cstring>
 #include "game.hpp"
 
 namespace Widgets {
@@ -14,14 +13,12 @@ Label::Label(const char *text, std::unique_ptr<Rect> rect, Font *font, int textS
 }
 
 void Label::setText(const char *text) {
-    if (this->text == nullptr || !strcmp(this->text, text)) {
-        this->text = text;
-        std::shared_ptr<Canvas> canvas = Game::getInstance()->getCanvas(); // UGLY HACK
-        image = font->render(canvas, text, textSize, textColor.get());
-    }
+    this->text = text;
+    std::shared_ptr<Canvas> canvas = Game::getInstance()->getCanvas(); // UGLY
+    image = font->render(canvas, text, textSize, textColor.get());
 }
 
-void Label::draw(Canvas *canvas) const {
+void Label::draw(std::shared_ptr<Canvas> canvas) const {
     Widget::draw(canvas);
 
     if (align == Label::Align::LEFT) {

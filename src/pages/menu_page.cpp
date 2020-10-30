@@ -1,13 +1,13 @@
 // VroemVroem - Menu Page
 
-#include "pages/menu.hpp"
+#include "pages/menu_page.hpp"
 #include "config.hpp"
 #include "game.hpp"
 #include "widgets/label.hpp"
 #include "widgets/button.hpp"
 #include "rect.hpp"
 #include "fonts.hpp"
-#include "pages/game.hpp"
+#include "pages/game_page.hpp"
 
 // Windows includes
 #ifdef _WIN32
@@ -100,7 +100,7 @@ void MenuPage::createWidgets() {
 
             // Windows
             #ifdef _WIN32
-            ShellExecute(0, 0, Config::gitRepoUrl, 0, 0, SW_SHOW);
+            ShellExecuteA(0, 0, Config::gitRepoUrl, 0, 0, SW_SHOW);
             #endif
 
             // Linux
