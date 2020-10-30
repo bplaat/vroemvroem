@@ -1,4 +1,4 @@
-// VroemVroem - Button
+// VroemVroem - Button Widget
 
 #include "widgets/button.hpp"
 

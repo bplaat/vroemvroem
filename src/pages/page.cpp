@@ -22,6 +22,7 @@ bool Page::handleEvent(const SDL_Event *event) {
         if (event->window.event == SDL_WINDOWEVENT_RESIZED) {
             widgets.clear();
             createWidgets();
+            return true;
         }
     }
 

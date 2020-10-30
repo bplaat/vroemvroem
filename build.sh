@@ -11,24 +11,47 @@ elif [ "$1" == "release" ]; then
     mkdir -p target/release
 
     for file in $(find src -name "*.c"); do
-        gcc -Os $release_flags -Iinclude -c $file -o target/release/$(basename $file .c).o
+        folder=$(dirname ${file:4:-2})
+        if [[ "$folder" != "." ]]; then
+            mkdir -p "target/release/$folder"
+        fi
+
+        if gcc -Os -Iinclude -c $file -o "target/release/${file:4:-2}.o"; then
+            echo "Passed: ${file:4}"
+        else
+            echo "Failed: ${file:4}"
+            exit
+        fi
     done
 
     for file in $(find src -name "*.cpp"); do
-        g++ -Os -Iinclude -c $file -o target/release/$(basename $file .cpp).o
+        folder=$(dirname ${file:4:-4})
+        if [[ "$folder" != "." ]]; then
+            mkdir -p "target/release/$folder"
+        fi
+
+        if g++ -Os -Iinclude -c $file -o "target/release/${file:4:-4}.o"; then
+            echo "Passed: ${file:4}"
+        else
+            echo "Failed: ${file:4}"
+            exit
+        fi
     done
 
     if [ "$(uname -s)" == "Linux" ]; then
-        rm -f target/release/$name-v$version-$platform
+        rm -f "target/release/$name-v$version-$platform"
 
-        g++ -s $(find target/release -name *.o) -lSDL2 -o target/release/$name-v$version-$platform
+        g++ -s $(find target/release -name *.o) -lSDL2 -o "target/release/$name-v$version-$platform"
+
+        find target/release -not -name "$name-v$version-$platform" -delete
     else
-        rm -f target/release/$name-v$version-$platform.exe
+        rm -f "target/release/$name-v$version-$platform.exe"
 
-        g++ -s $(find target/release -name *.o) -static -lsdl2 -lgdi32 -lversion -lsetupapi -lwinmm -limm32 -lole32 -loleaut32 -Wl,--subsystem,windows -o target/release/$name-v$version-$platform.exe
+        g++ -s $(find target/release -name *.o) -static -lsdl2 -lgdi32 -lversion -lsetupapi -lwinmm -limm32 \
+            -lole32 -loleaut32 -Wl,--subsystem,windows -o "target/release/$name-v$version-$platform.exe"
+
+        find target/release -not -name "$name-v$version-$platform.exe" -delete
     fi
-
-    rm -r target/release/*.o
 
     rm -f -r target/release/assets
     cp -r assets target/release
@@ -39,21 +62,38 @@ else
     mkdir -p target/debug
 
     for file in $(find src -name "*.c"); do
-        object="target/debug/$(basename $file .c).o"
+        object="target/debug/${file:4:-2}.o"
+
+        folder=$(dirname ${file:4:-2})
+        if [[ "$folder" != "." ]]; then
+            mkdir -p "target/debug/$folder"
+        fi
+
         if [[ $file -nt $object ]]; then
             rm -f $object
-            gcc -Iinclude -c $file -o $object
+            if gcc -Iinclude -c $file -o $object; then
+                echo "Passed: ${file:4}"
+            else
+                echo "Failed: ${file:4}"
+                exit
+            fi
         fi
     done
 
     for file in $(find src -name "*.cpp"); do
-        object="target/debug/$(basename $file .cpp).o"
+        object="target/debug/${file:4:-4}.o"
+
+        folder=$(dirname ${file:4:-4})
+        if [[ "$folder" != "." ]]; then
+            mkdir -p "target/debug/$folder"
+        fi
+
         if [[ $file -nt $object ]]; then
             rm -f $object
             if g++ -g -DDEBUG -Wall -Wextra -Wpedantic --std=c++17 -Iinclude -c $file -o $object; then
-                echo "Passed: $file"
+                echo "Passed: ${file:4}"
             else
-                echo "Failed: $file"
+                echo "Failed: ${file:4}"
                 exit
             fi
         fi

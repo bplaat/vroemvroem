@@ -1,6 +1,7 @@
 // VroemVroem - Game
 
 #include "game.hpp"
+#include "config.hpp"
 #include <iostream>
 #include "image.hpp"
 #include "rect.hpp"
@@ -9,7 +10,7 @@
 #include "objects/nature.hpp"
 #include "objects/house.hpp"
 #include "objects/vehicle.hpp"
-#include "pages/menu.hpp"
+#include "pages/intro.hpp"
 
 std::unique_ptr<Game> Game::instance = nullptr;
 
@@ -42,7 +43,7 @@ Game::Game(const char *title, int width, int height, bool fullscreen)
 
 Game *Game::getInstance() {
     if (!instance) {
-        instance = std::make_unique<Game>("VroemVroem", 1280, 720, false);
+        instance = std::make_unique<Game>(Config::name, 1280, 720, false);
     }
     return instance.get();
 }
@@ -119,8 +120,8 @@ void Game::start() {
     Objects::House::loadImages(canvas);
     Objects::Vehicle::loadImages(canvas);
 
-    // Create menu page
-    page = std::make_unique<Pages::MenuPage>();
+    // Create intro page
+    page = std::make_unique<Pages::IntroPage>();
 
     // Old time variable
     uint64_t oldTime = SDL_GetPerformanceCounter();

@@ -1,4 +1,4 @@
-// VroemVroem - Label
+// VroemVroem - Label Widget
 
 #include "widgets/label.hpp"
 #include <cstring>

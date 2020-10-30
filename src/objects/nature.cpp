@@ -1,4 +1,4 @@
-// VroemVroem - Nature
+// VroemVroem - Nature Object
 
 #include "objects/nature.hpp"
 #include "rect.hpp"

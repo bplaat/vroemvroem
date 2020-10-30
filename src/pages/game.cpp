@@ -5,7 +5,14 @@
 namespace Pages {
 
 GamePage::GamePage()
-    : Page::Page() {};
+    : Page::Page()
+{
+    createWidgets();
+}
+
+void GamePage::createWidgets() {
+    //
+}
 
 }
 

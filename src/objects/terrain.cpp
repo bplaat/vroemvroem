@@ -1,4 +1,4 @@
-// VroemVroem - Terrain
+// VroemVroem - Terrain Object
 
 #include "objects/terrain.hpp"
 

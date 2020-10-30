@@ -1,4 +1,4 @@
-// VroemVroem - Terrain Header
+// VroemVroem - Terrain Object Header
 
 #pragma once
 

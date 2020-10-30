@@ -1,4 +1,4 @@
-// VroemVroem - House Header
+// VroemVroem - House Object Header
 
 #pragma once
 

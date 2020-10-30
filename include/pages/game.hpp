@@ -15,6 +15,8 @@ class GamePage : public Page {
     public:
         GamePage();
 
+        void createWidgets();
+
         // bool handleEvent(const SDL_Event *event);
 
         // void update(float delta);

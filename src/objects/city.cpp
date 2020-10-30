@@ -1,4 +1,4 @@
-// VroemVroem - City
+// VroemVroem - City Object
 
 #include "objects/city.hpp"
 #include <memory>

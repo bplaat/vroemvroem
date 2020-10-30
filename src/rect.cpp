@@ -9,7 +9,7 @@ Rect::Rect(int x, int y, int width, int height)
     : x(x), y(y), width(width), height(height) {}
 
 bool Rect::containsPoint(int pointX, int pointY) {
-    return pointX >= x && pointX >= y &&
+    return pointX >= x && pointY >= y &&
         pointX < x + width && pointY < y + height;
 }
 

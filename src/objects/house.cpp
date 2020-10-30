@@ -1,4 +1,4 @@
-// VroemVroem - House
+// VroemVroem - House Object
 
 #include "objects/house.hpp"
 #include "rect.hpp"

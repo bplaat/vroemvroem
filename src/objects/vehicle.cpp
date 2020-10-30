@@ -1,4 +1,4 @@
-// VroemVroem - Vehicle
+// VroemVroem - Vehicle Object
 
 #include "objects/vehicle.hpp"
 #include <cmath>

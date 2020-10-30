@@ -1,4 +1,4 @@
-// VroemVroem - Label Header
+// VroemVroem - Label Widget Header
 
 #pragma once
 

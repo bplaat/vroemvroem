@@ -1,4 +1,4 @@
-// VroemVroem - Button Header
+// VroemVroem - Button Widget Header
 
 #pragma once
 
