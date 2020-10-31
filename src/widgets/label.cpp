@@ -19,36 +19,38 @@ void Label::setText(const char *text) {
 }
 
 void Label::draw(std::shared_ptr<Canvas> canvas) const {
-    Widget::draw(canvas);
+    if (visible) {
+        Widget::draw(canvas);
 
-    if (align == Label::Align::LEFT) {
-        Rect imageRect = {
-            rect->x,
-            rect->y + (rect->height - image->getHeight()) / 2,
-            image->getWidth(),
-            image->getHeight()
-        };
-        image->draw(&imageRect);
-    }
+        if (align == Label::Align::LEFT) {
+            Rect imageRect = {
+                rect->x,
+                rect->y + (rect->height - image->getHeight()) / 2,
+                image->getWidth(),
+                image->getHeight()
+            };
+            image->draw(&imageRect);
+        }
 
-    if (align == Label::Align::CENTER) {
-        Rect imageRect = {
-            rect->x + (rect->width - image->getWidth()) / 2,
-            rect->y + (rect->height - image->getHeight()) / 2,
-            image->getWidth(),
-            image->getHeight()
-        };
-        image->draw(&imageRect);
-    }
+        if (align == Label::Align::CENTER) {
+            Rect imageRect = {
+                rect->x + (rect->width - image->getWidth()) / 2,
+                rect->y + (rect->height - image->getHeight()) / 2,
+                image->getWidth(),
+                image->getHeight()
+            };
+            image->draw(&imageRect);
+        }
 
-    if (align == Label::Align::RIGHT) {
-        Rect imageRect = {
-            rect->x + (rect->width - image->getWidth()),
-            rect->y + (rect->height - image->getHeight()) / 2,
-            image->getWidth(),
-            image->getHeight()
-        };
-        image->draw(&imageRect);
+        if (align == Label::Align::RIGHT) {
+            Rect imageRect = {
+                rect->x + (rect->width - image->getWidth()),
+                rect->y + (rect->height - image->getHeight()) / 2,
+                image->getWidth(),
+                image->getHeight()
+            };
+            image->draw(&imageRect);
+        }
     }
 }
 

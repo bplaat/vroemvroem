@@ -27,10 +27,12 @@ bool WidgetGroup::handleEvent(const SDL_Event *event) {
 }
 
 void WidgetGroup::draw(std::shared_ptr<Canvas> canvas) const {
-    Widget::draw(canvas);
+    if (visible) {
+        Widget::draw(canvas);
 
-    for (auto const &widget : widgets) {
-        widget->draw(canvas);
+        for (auto const &widget : widgets) {
+            widget->draw(canvas);
+        }
     }
 }
 

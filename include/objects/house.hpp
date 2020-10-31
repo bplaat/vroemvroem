@@ -23,6 +23,8 @@ class House : public Object {
     private:
         static std::unique_ptr<Image> images[static_cast<size_t>(House::Type::size)];
 
+        static const char *names[static_cast<size_t>(House::Type::size)];
+
         House::Type type;
 
         int population;
@@ -39,6 +41,8 @@ class House : public Object {
         static void loadImages(std::shared_ptr<Canvas> canvas);
 
         static const Image *getImage(House::Type type);
+
+        static const char *getName(House::Type type);
 };
 
 }

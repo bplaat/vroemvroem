@@ -31,9 +31,7 @@ void Page::update(float delta) {
 }
 
 void Page::draw(std::shared_ptr<Canvas> canvas) const {
-    SDL_Renderer *renderer = canvas->getRenderer();
-    SDL_SetRenderDrawColor(renderer, backgroundColor->red, backgroundColor->blue, backgroundColor->green, backgroundColor->alpha);
-    SDL_RenderClear(renderer);
+    canvas->clear(backgroundColor.get());
 
     for (auto const &widget : widgets) {
         widget->draw(canvas);

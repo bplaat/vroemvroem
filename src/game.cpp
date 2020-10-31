@@ -10,7 +10,11 @@
 #include "objects/nature.hpp"
 #include "objects/house.hpp"
 #include "objects/vehicle.hpp"
+#ifdef DEBUG
+#include "pages/game_page.hpp"
+#else
 #include "pages/intro_page.hpp"
+#endif
 
 std::unique_ptr<Game> Game::instance = nullptr;
 
@@ -143,8 +147,13 @@ void Game::start() {
     Objects::House::loadImages(canvas);
     Objects::Vehicle::loadImages(canvas);
 
+    #ifdef DEBUG
+    // Create game page
+    page = std::make_unique<Pages::GamePage>();
+    #else
     // Create intro page
     page = std::make_unique<Pages::IntroPage>();
+    #endif
 
     // Old time variable
     uint64_t oldTime = SDL_GetPerformanceCounter();
@@ -167,7 +176,7 @@ void Game::start() {
 
         // Draw current page
         page->draw(canvas);
-        SDL_RenderPresent(canvas->getRenderer());
+        canvas->present();
 
         // Update old time
         oldTime = time;

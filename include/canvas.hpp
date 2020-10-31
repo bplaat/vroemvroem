@@ -6,6 +6,7 @@
 #include <SDL2/SDL.h>
 #include "utils.hpp"
 #include "rect.hpp"
+#include "color.hpp"
 
 class Canvas {
     private:
@@ -17,4 +18,15 @@ class Canvas {
         SDL_Renderer *getRenderer() const;
 
         std::unique_ptr<Rect> getRect() const;
+
+        void clear(const Color *color);
+
+        void fillRect(const Rect *rect, const Color *color);
+
+        void drawTexture(SDL_Texture *texture, const Rect *rect);
+
+        void drawTexture(SDL_Texture *texture, const Rect *rect, float angle);
+
+        void present();
+
 };

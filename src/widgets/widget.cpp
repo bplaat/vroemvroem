@@ -7,6 +7,14 @@ namespace Widgets {
 Widget::Widget(std::unique_ptr<Rect> rect, std::unique_ptr<Color> backgroundColor, std::function<void()> clickCallback)
     : rect(std::move(rect)), backgroundColor(std::move(backgroundColor)), clickCallback(clickCallback) {}
 
+bool Widget::isVisible() const {
+    return visible;
+}
+
+void Widget::setVisible(bool visible) {
+    this->visible = visible;
+}
+
 bool Widget::handleEvent(const SDL_Event *event) {
     if (
         event->type == SDL_MOUSEBUTTONUP &&
@@ -21,10 +29,10 @@ bool Widget::handleEvent(const SDL_Event *event) {
 }
 
 void Widget::draw(std::shared_ptr<Canvas> canvas) const {
-    if (backgroundColor) {
-        SDL_Renderer *renderer = canvas->getRenderer();
-        SDL_SetRenderDrawColor(renderer, backgroundColor->red, backgroundColor->blue, backgroundColor->green, backgroundColor->alpha);
-        SDL_RenderFillRect(renderer, (SDL_Rect *)rect.get());
+    if (visible) {
+        if (backgroundColor) {
+            canvas->fillRect(rect.get(), backgroundColor.get());
+        }
     }
 }
 

@@ -33,17 +33,19 @@ void City::draw(std::shared_ptr<Canvas> canvas, const Camera *camera) const {
 
     int tileSize = Camera::zoomLevels[camera->getZoom()];
 
-    Font *textFont = Fonts::getInstance()->getTextFont();
-
     Rect cityRect;
     cityRect.height = tileSize / 2;
-    cityRect.width = textFont->measure(cityLabel, cityRect.height);
+    cityRect.width = Fonts::getInstance()->getTextFont()->measure(cityLabel, cityRect.height);
     cityRect.x = static_cast<int>(x * tileSize - (camera->getX() * tileSize - canvasRect->width / 2)) - cityRect.width / 2;
     cityRect.y = static_cast<int>(y * tileSize - (camera->getY() * tileSize - canvasRect->height / 2)) - cityRect.height / 2;
 
     if (canvasRect->collides(&cityRect) && camera->getZoom() >= 2) {
-        // VERY BUGGY!!!
-        // std::unique_ptr<Image> cityLabelImage = textFont->render(canvas, cityLabel, cityRect.height, RGB(255, 255, 255));
+        std::unique_ptr<Color> rectColor = std::make_unique<Color>(0, 0, 0);
+        canvas->fillRect(&cityRect, rectColor.get());
+
+        // BUG
+        // std::unique_ptr<Color> textColor = std::make_unique<Color>(255, 255, 255);
+        // std::unique_ptr<Image> cityLabelImage = textFont->render(canvas, cityLabel, cityRect.height, textColor.get());
         // cityLabelImage->draw(&cityRect);
     }
 }
@@ -56,7 +58,7 @@ const char *City::randomName(Random *random) {
 
     int nameLength = random->random(2, 5) * 2;
 
-    char *randomName = new char[nameLength + 1]; // MEM LEAK!!!
+    char *randomName = new char[nameLength + 1]; // LEAK
     int pos = 0;
     while (pos < nameLength) {
         randomName[pos] = consonants[random->random(0, consonantsLength - 1)];

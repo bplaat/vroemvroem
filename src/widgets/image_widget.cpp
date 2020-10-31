@@ -8,15 +8,17 @@ ImageWidget::ImageWidget(std::unique_ptr<Image> image, std::unique_ptr<Rect> rec
     : Widget::Widget(std::move(rect), std::move(backgroundColor), std::move(clickCallback)), image(std::move(image)) {}
 
 void ImageWidget::draw(std::shared_ptr<Canvas> canvas) const {
-    Widget::draw(canvas);
+    if (visible) {
+        Widget::draw(canvas);
 
-    Rect imageRect = {
-        rect->x + (rect->width - image->getWidth()) / 2,
-        rect->y + (rect->height - image->getHeight()) / 2,
-        image->getWidth(),
-        image->getHeight()
-    };
-    image->draw(&imageRect);
+        Rect imageRect = {
+            rect->x + (rect->width - image->getWidth()) / 2,
+            rect->y + (rect->height - image->getHeight()) / 2,
+            image->getWidth(),
+            image->getHeight()
+        };
+        image->draw(&imageRect);
+    }
 }
 
 }

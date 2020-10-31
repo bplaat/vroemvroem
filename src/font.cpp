@@ -47,6 +47,7 @@ int Font::measure(const char *text, int textSize) {
     return width;
 }
 
+// BUG
 std::unique_ptr<Image> Font::render(std::shared_ptr<Canvas> canvas, const char *text, int textSize, const Color *textColor) {
     float scale = stbtt_ScaleForPixelHeight(&fontInfo, textSize);
     int xpadding = textSize / 4;

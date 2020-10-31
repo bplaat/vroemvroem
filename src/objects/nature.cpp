@@ -7,6 +7,19 @@ namespace Objects {
 
 std::unique_ptr<Image> Nature::images[static_cast<size_t>(Nature::Type::size)];
 
+const char *Nature::names[static_cast<size_t>(Nature::Type::size)] = {
+    "Bushses",
+    "Bushses with Berries",
+    "Rocks",
+    "Rocks with Gold",
+    "Beech Tree",
+    "Small Beech Tree",
+    "Fir Tree",
+    "Small Fir Tree",
+    "Trunk",
+    "Small Trunk"
+};
+
 Nature::Nature(int id, Nature::Type type, float x, float y)
     : Object::Object(id, x, y), type(type) {}
 
@@ -20,8 +33,8 @@ void Nature::draw(std::shared_ptr<Canvas> canvas, const Camera *camera) const {
     int tileSize = Camera::zoomLevels[camera->getZoom()];
 
     Rect natureRect = {
-        static_cast<int>(x * tileSize - (camera->getX() * tileSize - canvasRect->width / 2)),
-        static_cast<int>(y * tileSize - (camera->getY() * tileSize - canvasRect->height / 2)),
+        static_cast<int>(x * tileSize - (camera->getX() * tileSize - canvasRect->width / 2) - tileSize / 2),
+        static_cast<int>(y * tileSize - (camera->getY() * tileSize - canvasRect->height / 2) - tileSize / 2),
         tileSize,
         tileSize
     };
@@ -46,6 +59,10 @@ void Nature::loadImages(std::shared_ptr<Canvas> canvas) {
 
 const Image *Nature::getImage(Nature::Type type) {
     return images[static_cast<size_t>(type)].get();
+}
+
+const char *Nature::getName(Nature::Type type) {
+    return names[static_cast<size_t>(type)];
 }
 
 }

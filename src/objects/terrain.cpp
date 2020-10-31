@@ -6,6 +6,21 @@ namespace Objects {
 
 std::unique_ptr<Image> Terrain::images[static_cast<size_t>(Terrain::Type::size)];
 
+const char *Terrain::names[static_cast<size_t>(Terrain::Type::size)] = {
+    "Deep Water",
+    "Shallow Water",
+    "Sand",
+    "Sand",
+    "Grass",
+    "Grass",
+    "Dirt",
+    "Dirt",
+    "Stone",
+    "Stone",
+    "Snow",
+    "Snow"
+};
+
 void Terrain::loadImages(std::shared_ptr<Canvas> canvas) {
     images[static_cast<size_t>(Terrain::Type::WATER_DEEP)] = std::make_unique<Image>(canvas, "assets/images/terrain/water_deep.png", false);
     images[static_cast<size_t>(Terrain::Type::WATER)] = std::make_unique<Image>(canvas, "assets/images/terrain/water.png", false);
@@ -23,6 +38,10 @@ void Terrain::loadImages(std::shared_ptr<Canvas> canvas) {
 
 const Image *Terrain::getImage(Terrain::Type type) {
     return images[static_cast<size_t>(type)].get();
+}
+
+const char *Terrain::getName(Terrain::Type type) {
+    return names[static_cast<size_t>(type)];
 }
 
 }

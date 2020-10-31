@@ -44,11 +44,11 @@ SDL_Texture *Image::getTexture() const {
 }
 
 void Image::draw(const Rect *rect) const {
-    SDL_RenderCopy(canvas->getRenderer(), texture.get(), nullptr, (SDL_Rect *)rect);
+    canvas->drawTexture(texture.get(), rect);
 }
 
 void Image::draw(const Rect *rect, float angle) const {
-    SDL_RenderCopyEx(canvas->getRenderer(), texture.get(), nullptr, (SDL_Rect *)rect, degrees(angle), nullptr, SDL_FLIP_NONE);
+    canvas->drawTexture(texture.get(), rect, angle);
 }
 
 void Image::loadBitmap(const uint8_t *bitmap) {

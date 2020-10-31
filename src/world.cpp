@@ -38,11 +38,11 @@ World::World(uint64_t seed, int width, int height)
 
             else if (h >= 0.8) {
                 if (o >= 0.2 && random->random(1, 6) == 1) {
-                    natures.push_back(std::make_unique<Objects::Nature>(natures.size(), Objects::Nature::Type::GOLD, x, y));
+                    natures.push_back(std::make_unique<Objects::Nature>(natures.size(), Objects::Nature::Type::GOLD, x + 0.5, y + 0.5));
                     objectMap[y * width + x] = 1;
                 }
                 else if (o < 0.2 && random->random(1, 6) == 1) {
-                    natures.push_back(std::make_unique<Objects::Nature>(natures.size(), Objects::Nature::Type::STONE, x, y));
+                    natures.push_back(std::make_unique<Objects::Nature>(natures.size(), Objects::Nature::Type::STONE, x + 0.5, y + 0.5));
                     objectMap[y * width + x] = 1;
                 }
 
@@ -59,15 +59,15 @@ World::World(uint64_t seed, int width, int height)
                         natures.push_back(std::make_unique<Objects::Nature>(
                             natures.size(),
                             static_cast<Objects::Nature::Type>(random->random(static_cast<int>(Objects::Nature::Type::BEECH), static_cast<int>(Objects::Nature::Type::FIR_SMALL))),
-                            x,
-                            y
+                            x + 0.5,
+                            y + 0.5
                         ));
                     } else {
                         natures.push_back(std::make_unique<Objects::Nature>(
                             natures.size(),
                             static_cast<Objects::Nature::Type>(random->random(static_cast<int>(Objects::Nature::Type::TRUNK), static_cast<int>(Objects::Nature::Type::TRUNK_SMALL))),
-                            x,
-                            y
+                            x + 0.5,
+                            y + 0.5
                         ));
                     }
                     objectMap[y * width + x] = 1;
@@ -76,8 +76,8 @@ World::World(uint64_t seed, int width, int height)
                     natures.push_back(std::make_unique<Objects::Nature>(
                         natures.size(),
                         static_cast<Objects::Nature::Type>(random->random(static_cast<int>(Objects::Nature::Type::BUSHES), static_cast<int>(Objects::Nature::Type::BERRIES))),
-                        x,
-                        y
+                        x + 0.5,
+                        y + 0.5
                     ));
                     objectMap[y * width + x] = 1;
                 }
@@ -142,8 +142,8 @@ World::World(uint64_t seed, int width, int height)
                 std::unique_ptr<Objects::House> house = std::make_unique<Objects::House>(
                     houses.size(),
                     static_cast<Objects::House::Type>(random->random(static_cast<int>(Objects::House::Type::HOUSE), static_cast<int>(Objects::House::Type::SHOP))),
-                    x,
-                    y,
+                    x + 0.5,
+                    y + 0.5,
                     population
                 );
                 houses.push_back(std::move(house));
@@ -166,8 +166,8 @@ World::World(uint64_t seed, int width, int height)
         vehicles.push_back(std::make_unique<Objects::Vehicle>(
             vehicles.size(),
             static_cast<Objects::Vehicle::Type>(random->random(static_cast<int>(Objects::Vehicle::Type::STANDARD), static_cast<int>(Objects::Vehicle::Type::MOTOR_CYCLE))),
-            x,
-            y,
+            x + 0.5,
+            y + 0.5,
             static_cast<Objects::Vehicle::Color>(random->random(static_cast<int>(Objects::Vehicle::Color::BLACK), static_cast<int>(Objects::Vehicle::Color::YELLOW))),
             radians(random->random(0, 360))
         ));
@@ -184,6 +184,38 @@ int World::getWidth() const {
 
 int World::getHeight() const {
     return height;
+}
+
+std::vector<const Objects::Nature *> World::getNatures() const {
+    std::vector<const Objects::Nature *> naturePointers;
+    for (auto const &nature : natures) {
+        naturePointers.push_back(nature.get());
+    }
+    return naturePointers;
+}
+
+std::vector<const Objects::House *> World::getHouses() const {
+    std::vector<const Objects::House *> housePointers;
+    for (auto const &house : houses) {
+        housePointers.push_back(house.get());
+    }
+    return housePointers;
+}
+
+std::vector<const Objects::City *> World::getCities() const {
+    std::vector<const Objects::City *> cityPointers;
+    for (auto const &city : cities) {
+        cityPointers.push_back(city.get());
+    }
+    return cityPointers;
+}
+
+std::vector<const Objects::Vehicle *> World::getVehicles() const {
+    std::vector<const Objects::Vehicle *> vehiclePointers;
+    for (auto const &vehicle : vehicles) {
+        vehiclePointers.push_back(vehicle.get());
+    }
+    return vehiclePointers;
 }
 
 void World::update(float delta) {

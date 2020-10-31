@@ -19,8 +19,14 @@ class Widget {
 
         std::function<void()> clickCallback;
 
+        bool visible = true;
+
     public:
         Widget(std::unique_ptr<Rect> rect, std::unique_ptr<Color> backgroundColor, std::function<void()> clickCallback);
+
+        bool isVisible() const;
+
+        void setVisible(bool visible);
 
         virtual bool handleEvent(const SDL_Event *event);
 

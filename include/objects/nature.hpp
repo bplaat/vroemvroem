@@ -29,6 +29,8 @@ class Nature : public Object {
     private:
         static std::unique_ptr<Image> images[static_cast<size_t>(Nature::Type::size)];
 
+        static const char *names[static_cast<size_t>(Nature::Type::size)];
+
         Nature::Type type;
 
     public:
@@ -41,6 +43,8 @@ class Nature : public Object {
         static void loadImages(std::shared_ptr<Canvas> canvas);
 
         static const Image *getImage(Nature::Type type);
+
+        static const char *getName(Nature::Type type);
 };
 
 }

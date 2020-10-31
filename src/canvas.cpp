@@ -22,3 +22,25 @@ std::unique_ptr<Rect> Canvas::getRect() const {
     SDL_GetRendererOutputSize(renderer.get(), &rect->width, &rect->height);
     return rect;
 }
+
+void Canvas::clear(const Color *color) {
+    SDL_SetRenderDrawColor(renderer.get(), color->red, color->blue, color->green, color->alpha);
+    SDL_RenderClear(renderer.get());
+}
+
+void Canvas::fillRect(const Rect *rect, const Color *color) {
+    SDL_SetRenderDrawColor(renderer.get(), color->red, color->blue, color->green, color->alpha);
+    SDL_RenderFillRect(renderer.get(), (SDL_Rect *)rect);
+}
+
+void Canvas::drawTexture(SDL_Texture *texture, const Rect *rect) {
+    SDL_RenderCopy(renderer.get(), texture, nullptr, (SDL_Rect *)rect);
+}
+
+void Canvas::drawTexture(SDL_Texture *texture, const Rect *rect, float angle) {
+    SDL_RenderCopyEx(renderer.get(), texture, nullptr, (SDL_Rect *)rect, degrees(angle), nullptr, SDL_FLIP_NONE);
+}
+
+void Canvas::present() {
+    SDL_RenderPresent(renderer.get());
+}

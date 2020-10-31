@@ -29,10 +29,14 @@ class Terrain {
     private:
         static std::unique_ptr<Image> images[static_cast<size_t>(Terrain::Type::size)];
 
+        static const char *names[static_cast<size_t>(Terrain::Type::size)];
+
     public:
         static void loadImages(std::shared_ptr<Canvas> canvas);
 
         static const Image *getImage(Terrain::Type type);
+
+        static const char *getName(Terrain::Type type);
 };
 
 }

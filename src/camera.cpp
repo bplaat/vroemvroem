@@ -44,8 +44,6 @@ bool Camera::handleEvent(const SDL_Event *event) {
         drag.begin.y = y;
         drag.mouse.x = event->button.x;
         drag.mouse.y = event->button.y;
-
-        return true;
     }
 
     if (event->type == SDL_MOUSEMOTION) {
@@ -60,16 +58,12 @@ bool Camera::handleEvent(const SDL_Event *event) {
             if (x > width) x = width;
             if (y > height) y = height;
         }
-
-        return true;
     }
 
     if (event->type == SDL_MOUSEBUTTONUP) {
         if (drag.enabled) {
             drag.enabled = false;
         }
-
-        return true;
     }
 
     if (event->type == SDL_MOUSEWHEEL) {
@@ -84,8 +78,6 @@ bool Camera::handleEvent(const SDL_Event *event) {
                 zoom++;
             }
         }
-
-        return true;
     }
 
     return false;

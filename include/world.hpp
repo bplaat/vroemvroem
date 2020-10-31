@@ -42,6 +42,14 @@ class World {
 
         int getHeight() const;
 
+        std::vector<const Objects::Nature *> getNatures() const;
+
+        std::vector<const Objects::House *> getHouses() const;
+
+        std::vector<const Objects::City *> getCities() const;
+
+        std::vector<const Objects::Vehicle *> getVehicles() const;
+
         void update(float delta);
 
         void draw(std::shared_ptr<Canvas> canvas, const Camera *camera) const;

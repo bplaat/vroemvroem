@@ -7,6 +7,13 @@ namespace Objects {
 
 std::unique_ptr<Image> House::images[static_cast<size_t>(House::Type::size)];
 
+const char *House::names[static_cast<size_t>(House::Type::size)] = {
+    "Standard House",
+    "Small house",
+    "Backery",
+    "Shop"
+};
+
 House::House(int id, House::Type type, float x, float y, int population)
     : Object::Object(id, x, y), type(type), population(population) {}
 
@@ -24,8 +31,8 @@ void House::draw(std::shared_ptr<Canvas> canvas, const Camera *camera) const {
     int tileSize = Camera::zoomLevels[camera->getZoom()];
 
     Rect houseRect = {
-        static_cast<int>(x * tileSize - (camera->getX() * tileSize - canvasRect->width / 2)),
-        static_cast<int>(y * tileSize - (camera->getY() * tileSize - canvasRect->height / 2)),
+        static_cast<int>(x * tileSize - (camera->getX() * tileSize - canvasRect->width / 2) - tileSize / 2),
+        static_cast<int>(y * tileSize - (camera->getY() * tileSize - canvasRect->height / 2) - tileSize / 2),
         tileSize,
         tileSize
     };
@@ -44,6 +51,10 @@ void House::loadImages(std::shared_ptr<Canvas> canvas) {
 
 const Image *House::getImage(House::Type type) {
     return images[static_cast<size_t>(type)].get();
+}
+
+const char *House::getName(House::Type type) {
+    return names[static_cast<size_t>(type)];
 }
 
 }
