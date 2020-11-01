@@ -154,7 +154,7 @@ World::World(uint64_t seed, int width, int height)
     for (size_t i = 0; i < cities.size() / 8; i++) {
         Objects::City *city = cities.at(random->random(0, cities.size() - 1)).get();
 
-        for (size_t j = 0; j < cities.size() / 4; j++) {
+        for (size_t j = 0; j < cities.size() / 8; j++) {
             Objects::City *otherCity;
             size_t attempt = 0;
             do {
@@ -191,7 +191,8 @@ World::World(uint64_t seed, int width, int height)
                     city->getY(),
                     otherCity->getX(),
                     otherCity->getY(),
-                    random->random(1, 3)
+                    1,
+                    random->random(60, 120)
                 ));
             }
 

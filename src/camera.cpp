@@ -38,7 +38,7 @@ void Camera::setZoom(int zoom) {
 }
 
 bool Camera::handleEvent(const SDL_Event *event) {
-    if (event->type == SDL_MOUSEBUTTONDOWN) {
+    if (event->type == SDL_MOUSEBUTTONDOWN && event->button.button == SDL_BUTTON_RIGHT) {
         drag.enabled = true;
         drag.begin.x = x;
         drag.begin.y = y;
@@ -46,24 +46,20 @@ bool Camera::handleEvent(const SDL_Event *event) {
         drag.mouse.y = event->button.y;
     }
 
-    if (event->type == SDL_MOUSEMOTION) {
-        if (drag.enabled) {
-            int tileSize = Camera::zoomLevels[zoom];
+    if (event->type == SDL_MOUSEMOTION && drag.enabled) {
+        int tileSize = Camera::zoomLevels[zoom];
 
-            x = drag.begin.x - ((float)(event->button.x - drag.mouse.x) / tileSize);
-            y = drag.begin.y - ((float)(event->button.y - drag.mouse.y) / tileSize);
+        x = drag.begin.x - ((float)(event->button.x - drag.mouse.x) / tileSize);
+        y = drag.begin.y - ((float)(event->button.y - drag.mouse.y) / tileSize);
 
-            if (x < 0) x = 0;
-            if (y < 0) y = 0;
-            if (x > width) x = width;
-            if (y > height) y = height;
-        }
+        if (x < 0) x = 0;
+        if (y < 0) y = 0;
+        if (x > width) x = width;
+        if (y > height) y = height;
     }
 
-    if (event->type == SDL_MOUSEBUTTONUP) {
-        if (drag.enabled) {
-            drag.enabled = false;
-        }
+    if (event->type == SDL_MOUSEBUTTONUP && drag.enabled) {
+        drag.enabled = false;
     }
 
     if (event->type == SDL_MOUSEWHEEL) {

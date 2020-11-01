@@ -9,6 +9,7 @@
 #include "objects/terrain.hpp"
 #include "objects/nature.hpp"
 #include "objects/house.hpp"
+#include "objects/road.hpp"
 #include "objects/vehicle.hpp"
 #ifdef DEBUG
 #include "pages/game_page.hpp"
@@ -145,6 +146,7 @@ void Game::start() {
     Objects::Terrain::loadImages(canvas);
     Objects::Nature::loadImages(canvas);
     Objects::House::loadImages(canvas);
+    Objects::Road::loadImages(canvas);
     Objects::Vehicle::loadImages(canvas);
 
     #ifdef DEBUG

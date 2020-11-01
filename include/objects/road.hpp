@@ -3,11 +3,25 @@
 #pragma once
 
 #include "objects/object.hpp"
+#include <memory>
+#include "image.hpp"
+#include "canvas.hpp"
+#include "camera.hpp"
 
 namespace Objects {
 
 class Road : public Object {
+    public:
+        enum class Edge {
+            LEFT = 0,
+            MIDDLE,
+            RIGHT,
+            size
+        };
+
     private:
+        static std::unique_ptr<Image> images[static_cast<size_t>(Road::Edge::size)];
+
         float endX;
 
         float endY;
@@ -32,6 +46,10 @@ class Road : public Object {
         void setSpeedLimit(int speedLimit);
 
         void draw(std::shared_ptr<Canvas> canvas, const Camera *camera) const;
+
+        static void loadImages(std::shared_ptr<Canvas> canvas);
+
+        static const Image *getImage(Road::Edge edge);
 };
 
 }
