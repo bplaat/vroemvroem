@@ -36,10 +36,10 @@ void City::draw(std::shared_ptr<Canvas> canvas, const Camera *camera) const {
     Rect cityRect;
     cityRect.height = tileSize / 2;
     cityRect.width = Fonts::getInstance()->getTextFont()->measure(cityLabel, cityRect.height);
-    cityRect.x = static_cast<int>(x * tileSize - (camera->getX() * tileSize - canvasRect->width / 2)) - cityRect.width / 2;
-    cityRect.y = static_cast<int>(y * tileSize - (camera->getY() * tileSize - canvasRect->height / 2)) - cityRect.height / 2;
+    cityRect.x = (int)(x * tileSize - (camera->getX() * tileSize - canvasRect->width / 2)) - cityRect.width / 2;
+    cityRect.y = (int)(y * tileSize - (camera->getY() * tileSize - canvasRect->height / 2)) - cityRect.height / 2;
 
-    if (canvasRect->collides(&cityRect) && camera->getZoom() >= 2) {
+    if (canvasRect->collides(&cityRect) && camera->getZoom() >= Camera::zoomLevelsSize / 4) {
         std::unique_ptr<Color> rectColor = std::make_unique<Color>(0, 0, 0);
         canvas->fillRect(&cityRect, rectColor.get());
 

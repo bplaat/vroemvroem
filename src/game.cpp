@@ -169,7 +169,7 @@ void Game::start() {
 
         // Calculate new delta via old and new time
         time = SDL_GetPerformanceCounter();
-        float delta = static_cast<double>((time - oldTime) * 1000) / SDL_GetPerformanceFrequency();
+        float delta = (double)((time - oldTime) * 1000) / SDL_GetPerformanceFrequency();
 
         // Update current page
         page->update(delta);

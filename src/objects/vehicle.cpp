@@ -110,8 +110,8 @@ int Vehicle::getAcceleration() const {
 
 void Vehicle::update(float delta) {
     int zoomedInSize = Camera::zoomLevels[Camera::zoomLevelsSize - 1];
-    x -= static_cast<float>(velocity) / zoomedInSize * sin(angle) * delta;
-    y -= static_cast<float>(velocity) / zoomedInSize * cos(angle) * delta;
+    x -= (float)velocity / zoomedInSize * sin(angle) * delta;
+    y -= (float)velocity / zoomedInSize * cos(angle) * delta;
 }
 
 void Vehicle::draw(std::shared_ptr<Canvas> canvas, const Camera *camera) const {
@@ -123,10 +123,10 @@ void Vehicle::draw(std::shared_ptr<Canvas> canvas, const Camera *camera) const {
 
     Rect vehicleRect;
     int zoomedInSize = Camera::zoomLevels[Camera::zoomLevelsSize - 1];
-    vehicleRect.width = static_cast<int>(static_cast<float>(stats->width) / zoomedInSize * tileSize);
-    vehicleRect.height = static_cast<int>(static_cast<float>(stats->height) / zoomedInSize * tileSize);
-    vehicleRect.x = static_cast<int>(x * tileSize - (camera->getX() * tileSize - canvasRect->width / 2) - vehicleRect.width / 2);
-    vehicleRect.y = static_cast<int>(y * tileSize - (camera->getY() * tileSize - canvasRect->height / 2) - vehicleRect.height / 2);
+    vehicleRect.width = (int)((float)stats->width / zoomedInSize * tileSize);
+    vehicleRect.height = (int)((float)stats->height / zoomedInSize * tileSize);
+    vehicleRect.x = (int)(x * tileSize - (camera->getX() * tileSize - canvasRect->width / 2) - vehicleRect.width / 2);
+    vehicleRect.y = (int)(y * tileSize - (camera->getY() * tileSize - canvasRect->height / 2) - vehicleRect.height / 2);
 
     if (canvasRect->collides(&vehicleRect)) {
         getImage(type, color)->draw(&vehicleRect, angle);

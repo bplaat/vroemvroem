@@ -36,34 +36,20 @@ bool Viewport::handleEvent(const SDL_Event *event) {
 
         Inspector *inspector = dynamic_cast<Inspector *>(widgets.at(1).get());
 
-        // Check natures for mouse click
-        std::vector<const Objects::Nature *> natures = world->getNatures();
-        for (auto const *nature : natures) {
-            Rect natureRect = {
-                static_cast<int>(nature->getX() * tileSize - (camera->getX() * tileSize - gameWidth / 2) - tileSize / 2),
-                static_cast<int>(nature->getY() * tileSize - (camera->getY() * tileSize - gameHeight / 2) - tileSize / 2),
-                tileSize,
-                tileSize
-            };
+        // Check vehicles for mouse click
+        std::vector<const Objects::Vehicle *> vehicles = world->getVehicles();
+        for (auto const *vehicle : vehicles) {
+            const Objects::Vehicle::Stats *vehicleStats = Objects::Vehicle::getStats(vehicle->getType());
 
-            if (natureRect.containsPoint(event->button.x, event->button.y)) {
-                inspector->setObject(dynamic_cast<const Objects::Object *>(nature));
-                return true;
-            }
-        }
+            Rect vehicleRect;
+            int zoomedInSize = Camera::zoomLevels[Camera::zoomLevelsSize - 1];
+            vehicleRect.width = (int)((float)vehicleStats->width / zoomedInSize * tileSize);
+            vehicleRect.height = (int)((float)vehicleStats->height / zoomedInSize * tileSize);
+            vehicleRect.x = (int)(vehicle->getX() * tileSize - (camera->getX() * tileSize - gameWidth / 2) - vehicleRect.width / 2);
+            vehicleRect.y = (int)(vehicle->getY() * tileSize - (camera->getY() * tileSize - gameHeight / 2) - vehicleRect.height / 2);
 
-        // Check houses for mouse click
-        std::vector<const Objects::House *> houses = world->getHouses();
-        for (auto const *house : houses) {
-            Rect houseRect = {
-                static_cast<int>(house->getX() * tileSize - (camera->getX() * tileSize - gameWidth / 2) - tileSize / 2),
-                static_cast<int>(house->getY() * tileSize - (camera->getY() * tileSize - gameHeight / 2) - tileSize / 2),
-                tileSize,
-                tileSize
-            };
-
-            if (houseRect.containsPoint(event->button.x, event->button.y)) {
-                inspector->setObject(dynamic_cast<const Objects::Object *>(house));
+            if (vehicleRect.containsPoint(event->button.x, event->button.y)) {
+                inspector->setObject(dynamic_cast<const Objects::Object *>(vehicle));
                 return true;
             }
         }
@@ -77,8 +63,8 @@ bool Viewport::handleEvent(const SDL_Event *event) {
             Rect cityRect;
             cityRect.height = tileSize / 2;
             cityRect.width = Fonts::getInstance()->getTextFont()->measure(cityLabel, cityRect.height);
-            cityRect.x = static_cast<int>(city->getX() * tileSize - (camera->getX() * tileSize - gameWidth / 2)) - cityRect.width / 2;
-            cityRect.y = static_cast<int>(city->getY() * tileSize - (camera->getY() * tileSize - gameHeight / 2)) - cityRect.height / 2;
+            cityRect.x = (int)(city->getX() * tileSize - (camera->getX() * tileSize - gameWidth / 2)) - cityRect.width / 2;
+            cityRect.y = (int)(city->getY() * tileSize - (camera->getY() * tileSize - gameHeight / 2)) - cityRect.height / 2;
 
             if (cityRect.containsPoint(event->button.x, event->button.y)) {
                 inspector->setObject(dynamic_cast<const Objects::Object *>(city));
@@ -86,20 +72,34 @@ bool Viewport::handleEvent(const SDL_Event *event) {
             }
         }
 
-        // Check vehicles for mouse click
-        std::vector<const Objects::Vehicle *> vehicles = world->getVehicles();
-        for (auto const *vehicle : vehicles) {
-            const Objects::Vehicle::Stats *vehicleStats = Objects::Vehicle::getStats(vehicle->getType());
+        // Check houses for mouse click
+        std::vector<const Objects::House *> houses = world->getHouses();
+        for (auto const *house : houses) {
+            Rect houseRect = {
+                (int)(house->getX() * tileSize - (camera->getX() * tileSize - gameWidth / 2) - tileSize / 2),
+                (int)(house->getY() * tileSize - (camera->getY() * tileSize - gameHeight / 2) - tileSize / 2),
+                tileSize,
+                tileSize
+            };
 
-            Rect vehicleRect;
-            int zoomedInSize = Camera::zoomLevels[Camera::zoomLevelsSize - 1];
-            vehicleRect.width = static_cast<int>(static_cast<float>(vehicleStats->width) / zoomedInSize * tileSize);
-            vehicleRect.height = static_cast<int>(static_cast<float>(vehicleStats->height) / zoomedInSize * tileSize);
-            vehicleRect.x = static_cast<int>(vehicle->getX() * tileSize - (camera->getX() * tileSize - gameWidth / 2) - vehicleRect.width / 2);
-            vehicleRect.y = static_cast<int>(vehicle->getY() * tileSize - (camera->getY() * tileSize - gameHeight / 2) - vehicleRect.height / 2);
+            if (houseRect.containsPoint(event->button.x, event->button.y)) {
+                inspector->setObject(dynamic_cast<const Objects::Object *>(house));
+                return true;
+            }
+        }
 
-            if (vehicleRect.containsPoint(event->button.x, event->button.y)) {
-                inspector->setObject(dynamic_cast<const Objects::Object *>(vehicle));
+        // Check natures for mouse click
+        std::vector<const Objects::Nature *> natures = world->getNatures();
+        for (auto const *nature : natures) {
+            Rect natureRect = {
+                (int)(nature->getX() * tileSize - (camera->getX() * tileSize - gameWidth / 2) - tileSize / 2),
+                (int)(nature->getY() * tileSize - (camera->getY() * tileSize - gameHeight / 2) - tileSize / 2),
+                tileSize,
+                tileSize
+            };
+
+            if (natureRect.containsPoint(event->button.x, event->button.y)) {
+                inspector->setObject(dynamic_cast<const Objects::Object *>(nature));
                 return true;
             }
         }

@@ -31,8 +31,8 @@ void House::draw(std::shared_ptr<Canvas> canvas, const Camera *camera) const {
     int tileSize = Camera::zoomLevels[camera->getZoom()];
 
     Rect houseRect = {
-        static_cast<int>(x * tileSize - (camera->getX() * tileSize - canvasRect->width / 2) - tileSize / 2),
-        static_cast<int>(y * tileSize - (camera->getY() * tileSize - canvasRect->height / 2) - tileSize / 2),
+        (int)(x * tileSize - (camera->getX() * tileSize - canvasRect->width / 2) - tileSize / 2),
+        (int)(y * tileSize - (camera->getY() * tileSize - canvasRect->height / 2) - tileSize / 2),
         tileSize,
         tileSize
     };

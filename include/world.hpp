@@ -8,6 +8,7 @@
 #include "objects/nature.hpp"
 #include "objects/house.hpp"
 #include "objects/city.hpp"
+#include "objects/road.hpp"
 #include "objects/vehicle.hpp"
 #include "camera.hpp"
 
@@ -31,6 +32,8 @@ class World {
 
         std::vector<std::unique_ptr<Objects::City>> cities;
 
+        std::vector<std::unique_ptr<Objects::Road>> roads;
+
         std::vector<std::unique_ptr<Objects::Vehicle>> vehicles;
 
     public:
@@ -47,6 +50,8 @@ class World {
         std::vector<const Objects::House *> getHouses() const;
 
         std::vector<const Objects::City *> getCities() const;
+
+        std::vector<const Objects::Road *> getRoads() const;
 
         std::vector<const Objects::Vehicle *> getVehicles() const;
 

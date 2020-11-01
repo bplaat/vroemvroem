@@ -29,5 +29,5 @@ double Random::random() {
 }
 
 int Random::random(int min, int max) {
-    return static_cast<int>(random() * (max - min + 1)) + min;
+    return (int)(random() * (max - min + 1)) + min;
 }

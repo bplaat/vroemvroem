@@ -14,9 +14,9 @@
 #define M_PI (3.14159265358979323846)
 #endif
 
-#define radians(degrees) (static_cast<double>(degrees) * M_PI / 180.0)
+#define radians(degrees) ((double)(degrees) * M_PI / 180.0)
 
-#define degrees(radians) (static_cast<double>(radians) * 180.0 / M_PI)
+#define degrees(radians) ((double)(radians) * 180.0 / M_PI)
 
 
 // ### Deleters ###

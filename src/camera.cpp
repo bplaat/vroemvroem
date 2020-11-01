@@ -3,7 +3,7 @@
 #include "camera.hpp"
 
 const int Camera::zoomLevels[] = { 8, 16, 24, 32, 48, 64, 80, 96, 112, 128 };
-const int Camera::zoomLevelsSize = static_cast<int>(sizeof(zoomLevels) / sizeof(zoomLevels[0]));
+const int Camera::zoomLevelsSize = (int)(sizeof(zoomLevels) / sizeof(zoomLevels[0]));
 
 Camera::Camera(float x, float y, int width, int height, int zoom)
     : x(x), y(y), width(width), height(height), zoom(zoom)
@@ -50,8 +50,8 @@ bool Camera::handleEvent(const SDL_Event *event) {
         if (drag.enabled) {
             int tileSize = Camera::zoomLevels[zoom];
 
-            x = drag.begin.x - (static_cast<float>(event->button.x - drag.mouse.x) / tileSize);
-            y = drag.begin.y - (static_cast<float>(event->button.y - drag.mouse.y) / tileSize);
+            x = drag.begin.x - ((float)(event->button.x - drag.mouse.x) / tileSize);
+            y = drag.begin.y - ((float)(event->button.y - drag.mouse.y) / tileSize);
 
             if (x < 0) x = 0;
             if (y < 0) y = 0;

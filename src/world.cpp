@@ -27,10 +27,10 @@ World::World(uint64_t seed, int width, int height)
     objectsNoise.SetSeed(seed + 1);
 
     // Generate terrain and natures
-    for (float y = 0; y < height; y++) {
-        for (float x = 0; x < width; x++) {
-            float h = heightNoise.GetNoise(x, y);
-            float o = objectsNoise.GetNoise(x, y);
+    for (int y = 0; y < height; y++) {
+        for (int x = 0; x < width; x++) {
+            float h = heightNoise.GetNoise((float)x, (float)y);
+            float o = objectsNoise.GetNoise((float)x, (float)y);
 
             if (h >= 0.9) {
                 terrainMap[y * width + x] = random->random(static_cast<int>(Objects::Terrain::Type::SNOW1), static_cast<int>(Objects::Terrain::Type::SNOW2));
@@ -101,62 +101,108 @@ World::World(uint64_t seed, int width, int height)
 
     // Generate cities
     for (int i = 0; i < sqrt(height * width) / 3; i++) {
-        float x;
-        float y;
+        int x;
+        int y;
 
         do {
             x = random->random(0, width - 1);
             y = random->random(0, height - 1);
         } while (terrainMap[y * width + x] <= 2);
 
-        cities.push_back(std::make_unique<Objects::City>(cities.size(), Objects::City::randomName(random.get()), x, y, 0));
+        cities.push_back(std::make_unique<Objects::City>(cities.size(), Objects::City::randomName(random.get()), x + 0.5, y + 0.5, 0));
     }
 
     // Generate houses
     for (auto &city : cities) {
         int target_population = random->random(50, random->random(100, random->random(200, random->random(300, 1000))));
         int spread = ceil(target_population / random->random(20, random->random(20, 30)));
+
         for (int j = 0; j < ceil(target_population / 4); j++) {
-            float x;
-            float y;
+            int x;
+            int y;
             int attempt = 0;
-            bool foundPosition = false;
             do {
-                x = city->getX() + random->random(-spread, spread);
-                y = city->getY() + random->random(-spread, spread);
-
-                if (
-                    x >= 0 && y >= 0 && x < width && y < height &&
-                    terrainMap[y * width +x] >= static_cast<int>(Objects::Terrain::Type::SAND1) &&
-                    objectMap[y * width + x] == 0
-                ) {
-                    foundPosition = true;
-                    break;
-                }
-
+                x = (int)city->getX() + random->random(-spread, spread);
+                y = (int)city->getY() + random->random(-spread, spread);
                 attempt++;
-            } while (!foundPosition && attempt == 10);
-
-            if (foundPosition) {
-                int population = random->random(2, 6);
-                std::unique_ptr<Objects::House> house = std::make_unique<Objects::House>(
-                    houses.size(),
-                    static_cast<Objects::House::Type>(random->random(static_cast<int>(Objects::House::Type::HOUSE), static_cast<int>(Objects::House::Type::SHOP))),
-                    x + 0.5,
-                    y + 0.5,
-                    population
-                );
-                houses.push_back(std::move(house));
-                objectMap[y * width + x] = 1;
-                city->setPopulation(city->getPopulation() + population);
+            } while (!(
+                attempt == spread ||
+                (
+                    x >= 0 && y >= 0 && x < width && y < height &&
+                    terrainMap[y * width + x] >= static_cast<int>(Objects::Terrain::Type::SAND1) &&
+                    objectMap[y * width + x] == 0
+                )
+            ));
+            if (attempt == spread) {
+                continue;
             }
+
+            int population = random->random(2, 6);
+            houses.push_back(std::make_unique<Objects::House>(
+                houses.size(),
+                static_cast<Objects::House::Type>(random->random(static_cast<int>(Objects::House::Type::HOUSE), static_cast<int>(Objects::House::Type::SHOP))),
+                x + 0.5,
+                y + 0.5,
+                population
+            ));
+            objectMap[y * width + x] = 1;
+            city->setPopulation(city->getPopulation() + population);
+        }
+    }
+
+    // Generate roads
+    for (size_t i = 0; i < cities.size() / 8; i++) {
+        Objects::City *city = cities.at(random->random(0, cities.size() - 1)).get();
+
+        for (size_t j = 0; j < cities.size() / 4; j++) {
+            Objects::City *otherCity;
+            size_t attempt = 0;
+            do {
+                otherCity = cities.at(random->random(0, cities.size() - 1)).get();
+                attempt++;
+            } while (!(
+                attempt == cities.size() * 2 ||
+                sqrt(
+                    (city->getX() - otherCity->getX()) * (city->getX() - otherCity->getX()) +
+                    (city->getY() - otherCity->getY()) * (city->getY() - otherCity->getY())
+                ) < 50
+            ));
+            if (attempt == cities.size() * 2) {
+                break;
+            }
+
+            bool alreadyExists = false;
+            for (const auto &road : roads) {
+                if (
+                    road->getX() == city->getX() &&
+                    road->getY() == city->getY() &&
+                    road->getEndX() == otherCity->getX() &&
+                    road->getEndY() == otherCity->getY()
+                ) {
+                    alreadyExists = true;
+                    road->setLanes(road->getLanes() + 1);
+                }
+            }
+
+            if (!alreadyExists) {
+                roads.push_back(std::make_unique<Objects::Road>(
+                    roads.size(),
+                    city->getX(),
+                    city->getY(),
+                    otherCity->getX(),
+                    otherCity->getY(),
+                    random->random(1, 3)
+                ));
+            }
+
+            city = otherCity;
         }
     }
 
     // Generate vehicles
     for (int i = 0; i < sqrt(height * width) / 3; i++) {
-        float x;
-        float y;
+        int x;
+        int y;
 
         do {
             x = random->random(0, width - 1);
@@ -210,6 +256,14 @@ std::vector<const Objects::City *> World::getCities() const {
     return cityPointers;
 }
 
+std::vector<const Objects::Road *> World::getRoads() const {
+    std::vector<const Objects::Road *> roadPointers;
+    for (auto const &road : roads) {
+        roadPointers.push_back(road.get());
+    }
+    return roadPointers;
+}
+
 std::vector<const Objects::Vehicle *> World::getVehicles() const {
     std::vector<const Objects::Vehicle *> vehiclePointers;
     for (auto const &vehicle : vehicles) {
@@ -234,8 +288,8 @@ void World::draw(std::shared_ptr<Canvas> canvas, const Camera *camera) const {
             int tileSize = Camera::zoomLevels[camera->getZoom()];
 
             Rect tileRect = {
-                static_cast<int>(x * tileSize - (camera->getX() * tileSize - canvasRect->width / 2)),
-                static_cast<int>(y * tileSize - (camera->getY() * tileSize - canvasRect->height / 2)),
+                (int)(x * tileSize - (camera->getX() * tileSize - canvasRect->width / 2)),
+                (int)(y * tileSize - (camera->getY() * tileSize - canvasRect->height / 2)),
                 tileSize,
                 tileSize
             };
@@ -254,6 +308,11 @@ void World::draw(std::shared_ptr<Canvas> canvas, const Camera *camera) const {
     // Draw houses
     for (auto const &house : houses) {
         house->draw(canvas, camera);
+    }
+
+    // Draw roads
+    for (auto const &road : roads) {
+        road->draw(canvas, camera);
     }
 
     // Draw cities
