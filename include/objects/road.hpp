@@ -14,8 +14,10 @@ class Road : public Object {
 
         int lanes;
 
+        int speedLimit;
+
     public:
-        Road(int id, float x, float y, float endX, float endY, int lanes);
+        Road(int id, float x, float y, float endX, float endY, int lanes, int speedLimit);
 
         float getEndX() const;
 
@@ -24,6 +26,10 @@ class Road : public Object {
         int getLanes() const;
 
         void setLanes(int lanes);
+
+        int getSpeedLimit() const;
+
+        void setSpeedLimit(int speedLimit);
 
         void draw(std::shared_ptr<Canvas> canvas, const Camera *camera) const;
 };

@@ -6,8 +6,8 @@
 
 namespace Objects {
 
-Road::Road(int id, float x, float y, float endX, float endY, int lanes)
-    : Object::Object(id, x, y), endX(endX), endY(endY), lanes(lanes) {}
+Road::Road(int id, float x, float y, float endX, float endY, int lanes, int speedLimit)
+    : Object::Object(id, x, y), endX(endX), endY(endY), lanes(lanes), speedLimit(speedLimit) {}
 
 float Road::getEndX() const {
     return endX;
@@ -23,6 +23,14 @@ int Road::getLanes() const {
 
 void Road::setLanes(int lanes) {
     this->lanes = lanes;
+}
+
+int Road::getSpeedLimit() const {
+    return speedLimit;
+}
+
+void Road::setSpeedLimit(int speedLimit) {
+    this->speedLimit = speedLimit;
 }
 
 void Road::draw(std::shared_ptr<Canvas> canvas, const Camera *camera) const {

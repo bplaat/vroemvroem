@@ -16,6 +16,7 @@ class Vehicle : public Object {
             const char *name;
             int width;
             int height;
+            int weight;
             int maxForwardVelocity;
             int forwardAcceleration;
             int maxBackwardVelocity;

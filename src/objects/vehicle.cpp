@@ -12,6 +12,7 @@ Vehicle::Stats Vehicle::stats[static_cast<size_t>(Vehicle::Type::size)] = {
         "Normal Baby",  // name
         71,             // width
         131,            // height
+        1600,           // weight
         700,            // maxForwardVelocity
         200,            // forwardAcceleration
         -200,           // maxBackwardVelocity
@@ -24,6 +25,7 @@ Vehicle::Stats Vehicle::stats[static_cast<size_t>(Vehicle::Type::size)] = {
         "Mini",     // name
         71,         // width
         116,        // height
+        1000,       // weight
         700,        // maxForwardVelocity
         200,        // forwardAcceleration
         -200,       // maxBackwardVelocity
@@ -36,6 +38,7 @@ Vehicle::Stats Vehicle::stats[static_cast<size_t>(Vehicle::Type::size)] = {
         "Sporty",   // name
         70,         // width
         131,        // height
+        1250,       // weight
         700,        // maxForwardVelocity
         200,        // forwardAcceleration
         -200,       // maxBackwardVelocity
@@ -48,6 +51,7 @@ Vehicle::Stats Vehicle::stats[static_cast<size_t>(Vehicle::Type::size)] = {
         "Truck",    // name
         71,         // width
         131,        // height
+        15000,      // weight
         700,        // maxForwardVelocity
         200,        // forwardAcceleration
         -200,       // maxBackwardVelocity
@@ -60,6 +64,7 @@ Vehicle::Stats Vehicle::stats[static_cast<size_t>(Vehicle::Type::size)] = {
         "Tesla",    // name
         70,         // width
         121,        // height
+        2000,       // weight
         700,        // maxForwardVelocity
         200,        // forwardAcceleration
         -200,       // maxBackwardVelocity
@@ -72,6 +77,7 @@ Vehicle::Stats Vehicle::stats[static_cast<size_t>(Vehicle::Type::size)] = {
         "Motor cycle",  // name
         44,             // width
         100,            // height
+        150,            // weight
         700,            // maxForwardVelocity
         200,            // forwardAcceleration
         -200,           // maxBackwardVelocity
