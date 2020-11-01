@@ -27,14 +27,14 @@ bool Viewport::handleEvent(const SDL_Event *event) {
         return true;
     }
 
+    Inspector *inspector = dynamic_cast<Inspector *>(widgets.at(1).get());
+
     if (event->type == SDL_MOUSEBUTTONUP && event->button.button == SDL_BUTTON_LEFT) {
         Game *game = Game::getInstance(); // UGLY
         int gameWidth = game->getWidth();
         int gameHeight = game->getHeight();
 
         int tileSize = Camera::zoomLevels[camera->getZoom()];
-
-        Inspector *inspector = dynamic_cast<Inspector *>(widgets.at(1).get());
 
         // Check vehicles for mouse click
         std::vector<const Objects::Vehicle *> vehicles = world->getVehicles();
@@ -105,6 +105,11 @@ bool Viewport::handleEvent(const SDL_Event *event) {
         }
 
         // When no clicks hide inspector
+        inspector->setObject(nullptr);
+    }
+
+    // When escape is pressed hide inspector
+    if (event->type == SDL_KEYUP && event->key.keysym.sym == SDLK_ESCAPE) {
         inspector->setObject(nullptr);
     }
 

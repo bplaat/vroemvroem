@@ -41,6 +41,14 @@ void Canvas::drawTexture(SDL_Texture *texture, const Rect *rect, float angle) {
     SDL_RenderCopyEx(renderer.get(), texture, nullptr, (SDL_Rect *)rect, degrees(angle), nullptr, SDL_FLIP_NONE);
 }
 
+void Canvas::drawTexture(SDL_Texture *texture, const Rect *destinationRect, const Rect *sourceRect) {
+    SDL_RenderCopy(renderer.get(), texture, (SDL_Rect *)sourceRect, (SDL_Rect *)destinationRect);
+}
+
+void Canvas::drawTexture(SDL_Texture *texture, const Rect *destinationRect, const Rect *sourceRect, float angle) {
+    SDL_RenderCopyEx(renderer.get(), texture, (SDL_Rect *)sourceRect, (SDL_Rect *)destinationRect, degrees(angle), nullptr, SDL_FLIP_NONE);
+}
+
 void Canvas::present() {
     SDL_RenderPresent(renderer.get());
 }

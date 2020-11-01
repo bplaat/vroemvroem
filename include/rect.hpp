@@ -15,4 +15,6 @@ struct Rect {
     bool containsPoint(int pointX, int pointY);
 
     bool collides(Rect *other);
+
+    bool collides(Rect *other, float angle);
 };

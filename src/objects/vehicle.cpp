@@ -134,7 +134,7 @@ void Vehicle::draw(std::shared_ptr<Canvas> canvas, const Camera *camera) const {
     vehicleRect.x = (int)(x * tileSize - (camera->getX() * tileSize - canvasRect->width / 2) - vehicleRect.width / 2);
     vehicleRect.y = (int)(y * tileSize - (camera->getY() * tileSize - canvasRect->height / 2) - vehicleRect.height / 2);
 
-    if (canvasRect->collides(&vehicleRect)) {
+    if (canvasRect->collides(&vehicleRect, angle)) {
         getImage(type, color)->draw(&vehicleRect, angle);
     }
 }

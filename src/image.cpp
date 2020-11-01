@@ -51,6 +51,14 @@ void Image::draw(const Rect *rect, float angle) const {
     canvas->drawTexture(texture.get(), rect, angle);
 }
 
+void Image::draw(const Rect *destinationRect, const Rect *sourceRect) const {
+    canvas->drawTexture(texture.get(), destinationRect, sourceRect);
+}
+
+void Image::draw(const Rect *destinationRect, const Rect *sourceRect, float angle) const {
+    canvas->drawTexture(texture.get(), destinationRect, sourceRect, angle);
+}
+
 void Image::loadBitmap(const uint8_t *bitmap) {
     std::unique_ptr<SDL_Surface, SDL_deleter> surface = std::unique_ptr<SDL_Surface, SDL_deleter>(SDL_CreateRGBSurfaceFrom(
         (void *)bitmap, width, height,

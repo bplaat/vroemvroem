@@ -9,6 +9,7 @@
 #include "objects/city.hpp"
 #include "camera.hpp"
 #include "utils.hpp"
+#include <map>
 
 World::World(uint64_t seed, int width, int height)
     : seed(seed), width(width), height(height)
@@ -151,8 +152,12 @@ World::World(uint64_t seed, int width, int height)
     }
 
     // Generate roads
+    std::map<int, int> cityCount;
+
     for (size_t i = 0; i < cities.size() / 8; i++) {
         Objects::City *city = cities.at(random->random(0, cities.size() - 1)).get();
+
+        int lanes = random->random(1, 3);
 
         for (size_t j = 0; j < cities.size() / 8; j++) {
             Objects::City *otherCity;
@@ -162,39 +167,30 @@ World::World(uint64_t seed, int width, int height)
                 attempt++;
             } while (!(
                 attempt == cities.size() * 2 ||
-                sqrt(
-                    (city->getX() - otherCity->getX()) * (city->getX() - otherCity->getX()) +
-                    (city->getY() - otherCity->getY()) * (city->getY() - otherCity->getY())
-                ) < 50
+                (
+                    sqrt(
+                        (city->getX() - otherCity->getX()) * (city->getX() - otherCity->getX()) +
+                        (city->getY() - otherCity->getY()) * (city->getY() - otherCity->getY())
+                    ) < 75 &&
+                    cityCount[otherCity->getId()] < 2
+                )
             ));
             if (attempt == cities.size() * 2) {
                 break;
             }
 
-            bool alreadyExists = false;
-            for (const auto &road : roads) {
-                if (
-                    road->getX() == city->getX() &&
-                    road->getY() == city->getY() &&
-                    road->getEndX() == otherCity->getX() &&
-                    road->getEndY() == otherCity->getY()
-                ) {
-                    alreadyExists = true;
-                    road->setLanes(road->getLanes() + 1);
-                }
-            }
+            roads.push_back(std::make_unique<Objects::Road>(
+                roads.size(),
+                city->getX(),
+                city->getY(),
+                otherCity->getX(),
+                otherCity->getY(),
+                lanes,
+                random->random(60, 120)
+            ));
 
-            if (!alreadyExists) {
-                roads.push_back(std::make_unique<Objects::Road>(
-                    roads.size(),
-                    city->getX(),
-                    city->getY(),
-                    otherCity->getX(),
-                    otherCity->getY(),
-                    1,
-                    random->random(60, 120)
-                ));
-            }
+            cityCount[city->getId()]++;
+            cityCount[otherCity->getId()]++;
 
             city = otherCity;
         }
@@ -208,7 +204,9 @@ World::World(uint64_t seed, int width, int height)
         do {
             x = random->random(0, width - 1);
             y = random->random(0, height - 1);
-        } while (terrainMap[y * width + x] <= 2);
+        } while (!(
+            terrainMap[y * width + x] >= static_cast<int>(Objects::Terrain::Type::SAND1)
+        ));
 
         vehicles.push_back(std::make_unique<Objects::Vehicle>(
             vehicles.size(),

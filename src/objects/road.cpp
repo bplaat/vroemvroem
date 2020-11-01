@@ -25,7 +25,7 @@ int Road::getLanes() const {
 }
 
 void Road::setLanes(int lanes) {
-    this->lanes = std::min(lanes, 4);
+    this->lanes = std::min(lanes, 3);
 }
 
 int Road::getSpeedLimit() const {
@@ -59,15 +59,15 @@ void Road::draw(std::shared_ptr<Canvas> canvas, const Camera *camera) const {
                 edge = Road::Edge::MIDDLE;
             }
 
-            Rect roadPartRect = {
+            Rect roadPartDestinationRect = {
                 (int)(lineX * tileSize - (camera->getX() * tileSize - canvasRect->width / 2) - tileSize / 2),
                 (int)((lineY - lanes + j + 0.5) * tileSize - (camera->getY() * tileSize - canvasRect->height / 2) - tileSize / 2),
                 tileSize,
-                tileSize
+                tileSize + 2 // Fix for pixel gaps
             };
 
-            if (canvasRect->collides(&roadPartRect)) { // TODO
-                getImage(edge)->draw(&roadPartRect, angle + M_PI / 2);
+            if (canvasRect->collides(&roadPartDestinationRect, angle)) {
+                getImage(edge)->draw(&roadPartDestinationRect, angle + M_PI / 2);
             }
         }
 

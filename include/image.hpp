@@ -39,6 +39,10 @@ class Image {
 
         void draw(const Rect *rect, float angle) const;
 
+        void draw(const Rect *destinationRect, const Rect *sourceRect) const;
+
+        void draw(const Rect *destinationRect, const Rect *sourceRect, float angle) const;
+
     private:
         void loadBitmap(const uint8_t *bitmap);
 };
