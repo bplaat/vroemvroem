@@ -27,6 +27,10 @@ bool Viewport::handleEvent(const SDL_Event *event) {
         return true;
     }
 
+    if (world->handleEvent(event)) {
+        return true;
+    }
+
     Inspector *inspector = dynamic_cast<Inspector *>(widgets.at(1).get());
 
     if (event->type == SDL_MOUSEBUTTONUP && event->button.button == SDL_BUTTON_LEFT) {

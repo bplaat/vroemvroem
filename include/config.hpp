@@ -9,4 +9,6 @@ class Config {
         static const char *version;
 
         static const char *gitRepoUrl;
+
+        static int vehicleTimeout;
 };

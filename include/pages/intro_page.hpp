@@ -7,6 +7,8 @@ namespace Pages {
 
 class IntroPage : public Page {
     private:
+        static int timerEventCode;
+
         SDL_TimerID timer;
 
     public:
@@ -15,8 +17,6 @@ class IntroPage : public Page {
         bool handleEvent(const SDL_Event *event);
 
         void createWidgets();
-
-        static uint32_t timerCallback(uint32_t interval, void *param);
 };
 
 }

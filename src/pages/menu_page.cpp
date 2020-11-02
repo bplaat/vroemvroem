@@ -7,6 +7,7 @@
 #include "widgets/button.hpp"
 #include "rect.hpp"
 #include "fonts.hpp"
+#include "pages/intro_page.hpp"
 #include "pages/game_page.hpp"
 
 // Windows includes
@@ -39,7 +40,9 @@ void MenuPage::createWidgets() {
         std::move(std::make_unique<Color>(255, 255, 255)),
         Widgets::Label::Align::CENTER,
         nullptr,
-        nullptr
+        []() {
+            Game::getInstance()->setPage(std::move(std::make_unique<IntroPage>()));
+        }
     ));
 
     y += 128;

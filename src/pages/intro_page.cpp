@@ -1,6 +1,7 @@
 // VroemVroem - Intro Page
 
 #include "pages/intro_page.hpp"
+#include "timer.hpp"
 #include "game.hpp"
 #include "pages/menu_page.hpp"
 #include "image.hpp"
@@ -11,6 +12,8 @@
 
 namespace Pages {
 
+int IntroPage::timerEventCode = 1;
+
 IntroPage::IntroPage()
     : Page::Page()
 {
@@ -18,7 +21,7 @@ IntroPage::IntroPage()
 
     createWidgets();
 
-    timer = SDL_AddTimer(2000, IntroPage::timerCallback, nullptr);
+    timer = SDL_AddTimer(2000, Timer::callback, reinterpret_cast<void *>(timerEventCode));
     if (timer == 0) {
         std::cerr << "[ERROR] Can't create the SDL timer: " << SDL_GetError() << std::endl;
         exit(EXIT_FAILURE);
@@ -30,7 +33,7 @@ bool IntroPage::handleEvent(const SDL_Event *event) {
         return true;
     }
 
-    if (event->type == SDL_USEREVENT) {
+    if (event->type == SDL_USEREVENT && event->user.code == timerEventCode) {
         SDL_RemoveTimer(timer);
 
         Game::getInstance()->setPage(std::move(std::make_unique<MenuPage>()));
@@ -94,24 +97,6 @@ void IntroPage::createWidgets() {
         nullptr,
         nullptr
     ));
-}
-
-uint32_t IntroPage::timerCallback(uint32_t interval, void *param) {
-    (void)param;
-
-    SDL_UserEvent userevent;
-    userevent.type = SDL_USEREVENT;
-    userevent.code = 0;
-    userevent.data1 = NULL;
-    userevent.data2 = NULL;
-
-    SDL_Event event;
-    event.type = SDL_USEREVENT;
-    event.user = userevent;
-
-    SDL_PushEvent(&event);
-
-    return interval;
 }
 
 }

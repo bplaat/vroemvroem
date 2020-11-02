@@ -5,6 +5,11 @@
 #include "objects/object.hpp"
 #include <memory>
 #include "image.hpp"
+
+namespace Objects {
+class Vehicle;
+}
+#include "objects/driver.hpp"
 #include "canvas.hpp"
 #include "camera.hpp"
 
@@ -58,6 +63,8 @@ class Vehicle : public Object {
 
         int acceleration;
 
+        std::unique_ptr<Driver> driver;
+
     public:
         Vehicle(int id, Vehicle::Type type, float x, float y, Vehicle::Color color, float angle);
 
@@ -70,6 +77,10 @@ class Vehicle : public Object {
         int getVelocity() const;
 
         int getAcceleration() const;
+
+        const Driver *getDriver() const;
+
+        void setDriver(std::unique_ptr<Driver> driver);
 
         void update(float delta);
 

@@ -72,7 +72,7 @@ Vehicle::Stats Vehicle::stats[static_cast<size_t>(Vehicle::Type::size)] = {
         radians(90) // turningSpeed
     },
 
-    // Motor cycle car
+    // Motor cycle
     {
         "Motor cycle",  // name
         44,             // width
@@ -114,10 +114,23 @@ int Vehicle::getAcceleration() const {
     return acceleration;
 }
 
+const Driver *Vehicle::getDriver() const {
+    return driver.get();
+}
+
+void Vehicle::setDriver(std::unique_ptr<Driver> driver) {
+    this->driver = std::move(driver);
+}
+
 void Vehicle::update(float delta) {
-    int zoomedInSize = Camera::zoomLevels[Camera::zoomLevelsSize - 1];
-    x -= (float)velocity / zoomedInSize * sin(angle) * delta;
-    y -= (float)velocity / zoomedInSize * cos(angle) * delta;
+    if (driver) {
+        driver->update(delta);
+
+        int zoomedInSize = Camera::zoomLevels[Camera::zoomLevelsSize - 1];
+
+        x -= (float)velocity / zoomedInSize * sin(angle) * delta;
+        y -= (float)velocity / zoomedInSize * cos(angle) * delta;
+    }
 }
 
 void Vehicle::draw(std::shared_ptr<Canvas> canvas, const Camera *camera) const {

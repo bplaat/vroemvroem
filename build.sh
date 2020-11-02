@@ -4,6 +4,8 @@ name="vroemvroem"
 version="0.1.0"
 platform="x86_64"
 
+rm -f -r .vscode
+
 if [ "$1" == "clean" ]; then
     rm -r target
 

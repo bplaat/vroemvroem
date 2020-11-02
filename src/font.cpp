@@ -4,9 +4,7 @@
 #include <iostream>
 #include <cstring>
 #include <memory>
-#include "stb_truetype.h"
 #include "canvas.hpp"
-#include "image.hpp"
 #include "utils.hpp"
 
 Font::Font(const char *path) {

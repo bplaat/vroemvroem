@@ -1,9 +1,11 @@
 // VroemVroem - Road Object
 
 #include "objects/road.hpp"
-#include <SDL2/SDL.h>
-#include "rect.hpp"
 #include <cmath>
+#include "rect.hpp"
+#ifdef DEBUG
+#include <SDL2/SDL.h>
+#endif
 
 namespace Objects {
 
@@ -46,25 +48,45 @@ void Road::draw(std::shared_ptr<Canvas> canvas, const Camera *camera) const {
 
     float length = sqrt((x - endX) * (x - endX) + (y - endY) * (y - endY));
 
-    float angle = x <= endX ? atan2(endY - y, endX - x) : atan2(y - endY, x - endX);
+    float angle = atan2(endY - y, endX - x);
 
     for (int i = 0; i < ceil(length); i++) {
         for (int j = 0; j < lanes * 2; j++) {
             Road::Edge edge;
-            if (j == 0) {
-                edge = Road::Edge::LEFT;
-            } else if (j == lanes * 2 - 1) {
-                edge = Road::Edge::RIGHT;
+            if (abs(x - endX) > abs(y - endY)) {
+                if (j == 0) {
+                    edge = Road::Edge::RIGHT;
+                } else if (j == lanes * 2 - 1) {
+                    edge = Road::Edge::LEFT;
+                } else {
+                    edge = Road::Edge::MIDDLE;
+                }
             } else {
-                edge = Road::Edge::MIDDLE;
+                if (j == 0) {
+                    edge = Road::Edge::LEFT;
+                } else if (j == lanes * 2 - 1) {
+                    edge = Road::Edge::RIGHT;
+                } else {
+                    edge = Road::Edge::MIDDLE;
+                }
             }
 
-            Rect roadPartDestinationRect = {
-                (int)(lineX * tileSize - (camera->getX() * tileSize - canvasRect->width / 2) - tileSize / 2),
-                (int)((lineY - lanes + j + 0.5) * tileSize - (camera->getY() * tileSize - canvasRect->height / 2) - tileSize / 2),
-                tileSize,
-                tileSize + 2 // Fix for pixel gaps
-            };
+            Rect roadPartDestinationRect;
+            if (abs(x - endX) > abs(y - endY)) {
+                roadPartDestinationRect = {
+                    (int)(lineX * tileSize - (camera->getX() * tileSize - canvasRect->width / 2) - tileSize / 2),
+                    (int)((lineY - lanes + j + 0.5) * tileSize - (camera->getY() * tileSize - canvasRect->height / 2) - tileSize / 2),
+                    tileSize, // + 2, // Fix for pixel gaps
+                    tileSize
+                };
+            } else {
+                roadPartDestinationRect = {
+                    (int)((lineX - lanes + j + 0.5) * tileSize - (camera->getX() * tileSize - canvasRect->width / 2) - tileSize / 2),
+                    (int)(lineY * tileSize - (camera->getY() * tileSize - canvasRect->height / 2) - tileSize / 2),
+                    tileSize,
+                    tileSize //+ 2 // Fix for pixel gaps
+                };
+            }
 
             if (canvasRect->collides(&roadPartDestinationRect, angle)) {
                 getImage(edge)->draw(&roadPartDestinationRect, angle + M_PI / 2);
@@ -79,6 +101,25 @@ void Road::draw(std::shared_ptr<Canvas> canvas, const Camera *camera) const {
             lineY += (y - endY) / length;
         }
     }
+
+    #ifdef DEBUG
+    int x0 = (int)(x * tileSize - (camera->getX() * tileSize - canvasRect->width / 2));
+    int y0 = (int)(y * tileSize - (camera->getY() * tileSize - canvasRect->height / 2));
+    int x1 = (int)(endX * tileSize - (camera->getX() * tileSize - canvasRect->width / 2));
+    int y1 = (int)(endY * tileSize - (camera->getY() * tileSize - canvasRect->height / 2));
+
+    Rect roadRect;
+    roadRect.x = std::min(x0, x1);
+    roadRect.y = std::min(y0, y1);
+    roadRect.width = std::max(x0, x1) - roadRect.x;
+    roadRect.height = std::max(y0, y1) - roadRect.y;
+
+    if (canvasRect->collides(&roadRect)) {
+        SDL_Renderer *renderer = canvas->getRenderer();
+        SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
+        SDL_RenderDrawLine(renderer, x0, y0, x1, y1);
+    }
+    #endif
 }
 
 void Road::loadImages(std::shared_ptr<Canvas> canvas) {

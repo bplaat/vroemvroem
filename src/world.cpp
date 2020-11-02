@@ -2,14 +2,15 @@
 
 #include "world.hpp"
 #include "noise.hpp"
-#include "random.hpp"
 #include "objects/terrain.hpp"
-#include "objects/nature.hpp"
-#include "objects/house.hpp"
-#include "objects/city.hpp"
-#include "camera.hpp"
+#include "objects/driver.hpp"
 #include "utils.hpp"
+#include "config.hpp"
+#include "timer.hpp"
 #include <map>
+#include <cmath>
+
+int World::vehicleTimerEventCode = 2;
 
 World::World(uint64_t seed, int width, int height)
     : seed(seed), width(width), height(height)
@@ -157,7 +158,7 @@ World::World(uint64_t seed, int width, int height)
     for (size_t i = 0; i < cities.size() / 8; i++) {
         Objects::City *city = cities.at(random->random(0, cities.size() - 1)).get();
 
-        int lanes = random->random(1, 3);
+        int lanes = random->random(1, random->random(1, 3));
 
         for (size_t j = 0; j < cities.size() / 8; j++) {
             Objects::City *otherCity;
@@ -196,27 +197,13 @@ World::World(uint64_t seed, int width, int height)
         }
     }
 
-    // Generate vehicles
-    for (int i = 0; i < sqrt(height * width) / 3; i++) {
-        int x;
-        int y;
-
-        do {
-            x = random->random(0, width - 1);
-            y = random->random(0, height - 1);
-        } while (!(
-            terrainMap[y * width + x] >= static_cast<int>(Objects::Terrain::Type::SAND1)
-        ));
-
-        vehicles.push_back(std::make_unique<Objects::Vehicle>(
-            vehicles.size(),
-            static_cast<Objects::Vehicle::Type>(random->random(static_cast<int>(Objects::Vehicle::Type::STANDARD), static_cast<int>(Objects::Vehicle::Type::MOTOR_CYCLE))),
-            x + 0.5,
-            y + 0.5,
-            static_cast<Objects::Vehicle::Color>(random->random(static_cast<int>(Objects::Vehicle::Color::BLACK), static_cast<int>(Objects::Vehicle::Color::YELLOW))),
-            radians(random->random(0, 360))
-        ));
+    // Create start vehicles
+    for (size_t i = 0; i < cities.size(); i++) {
+        addVehicle();
     }
+
+    // Start vehicle timer
+    vehicleTimer = SDL_AddTimer(Config::vehicleTimeout, Timer::callback, reinterpret_cast<void *>(vehicleTimerEventCode));
 }
 
 uint64_t World::getSeed() const {
@@ -271,6 +258,19 @@ std::vector<const Objects::Vehicle *> World::getVehicles() const {
     return vehiclePointers;
 }
 
+bool World::handleEvent(const SDL_Event *event) {
+    // Create vehicle on timer
+    if (event->type == SDL_USEREVENT && event->user.code == vehicleTimerEventCode) {
+        for (size_t i = 0; i < cities.size() / 10; i++) {
+            addVehicle();
+        }
+
+        return true;
+    }
+
+    return false;
+}
+
 void World::update(float delta) {
     // Update vehicles
     for (auto &vehicle : vehicles) {
@@ -323,4 +323,47 @@ void World::draw(std::shared_ptr<Canvas> canvas, const Camera *camera) const {
     for (auto const &vehicle : vehicles) {
         vehicle->draw(canvas, camera);
     }
+}
+
+void World::addVehicle() {
+    Objects::City *city = cities.at(random->random(0, cities.size() - 1)).get();
+    float x = 0;
+    float y = 0;
+    float destinationX = 0;
+    float destinationY = 0;
+
+    for (const auto &road : roads) {
+        if (random->random(1, 2) == 1 && road->getX() == city->getX() && road->getY() == city->getY()) {
+            x = road->getX();
+            y = road->getY();
+            destinationX = road->getEndX();
+            destinationY = road->getEndY();
+            break;
+        }
+
+        if (random->random(1, 2) == 1 && road->getEndX() == city->getX() && road->getEndY() == city->getY()) {
+            x = road->getEndX();
+            y = road->getEndY();
+            destinationX = road->getX();
+            destinationY = road->getY();
+            break;
+        }
+    }
+
+    if (destinationX == 0) {
+        return;
+    }
+
+    float angle = atan2(destinationY - y, destinationX - x) + M_PI / 2;
+
+    std::unique_ptr<Objects::Vehicle> vehicle = std::make_unique<Objects::Vehicle>(
+        vehicles.size(),
+        static_cast<Objects::Vehicle::Type>(random->random(static_cast<int>(Objects::Vehicle::Type::STANDARD), static_cast<int>(Objects::Vehicle::Type::MOTOR_CYCLE))),
+        x + 0.5,
+        y + 0.5,
+        static_cast<Objects::Vehicle::Color>(random->random(static_cast<int>(Objects::Vehicle::Color::BLACK), static_cast<int>(Objects::Vehicle::Color::YELLOW))),
+        angle
+    );
+    vehicle->setDriver(std::move(std::make_unique<Objects::Driver>(vehicle.get(), destinationX, destinationY)));
+    vehicles.push_back(std::move(vehicle));
 }
