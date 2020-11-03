@@ -16,17 +16,19 @@ class Vehicle;
 namespace Objects {
 
 class Vehicle : public Object {
+        friend class Driver;
+
     public:
         struct Stats {
             const char *name;
-            int width;
-            int height;
-            int weight;
-            int maxForwardVelocity;
-            int forwardAcceleration;
-            int maxBackwardVelocity;
-            int backwardAcceleration;
-            float turningSpeed;
+            int width;                // px
+            int height;               // px
+            int weight;               // kg
+            int maxForwardVelocity;   // px/s
+            int forwardAcceleration;  // px/s
+            int maxBackwardVelocity;  // px/s
+            int backwardAcceleration; // px/s
+            int turningSpeed;         // deg/s
         };
 
         enum class Type {
@@ -59,9 +61,9 @@ class Vehicle : public Object {
 
         float angle;
 
-        int velocity;
+        float velocity;
 
-        int acceleration;
+        float acceleration;
 
         std::unique_ptr<Driver> driver;
 
@@ -74,9 +76,9 @@ class Vehicle : public Object {
 
         float getAngle() const;
 
-        int getVelocity() const;
+        float getVelocity() const;
 
-        int getAcceleration() const;
+        float getAcceleration() const;
 
         const Driver *getDriver() const;
 

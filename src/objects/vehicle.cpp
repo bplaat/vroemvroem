@@ -9,90 +9,87 @@ namespace Objects {
 Vehicle::Stats Vehicle::stats[static_cast<size_t>(Vehicle::Type::size)] = {
     // Standard car
     {
-        "Normal Baby",  // name
-        71,             // width
-        131,            // height
-        1600,           // weight
-        700,            // maxForwardVelocity
-        200,            // forwardAcceleration
-        -200,           // maxBackwardVelocity
-        -60,            // backwardAcceleration
-        radians(90)     // turningSpeed
+        "Normal Baby", // name
+        71,            // width (px)
+        131,           // height (px)
+        1600,          // weight (kg)
+        700,           // maxForwardVelocity (px/s)
+        200,           // forwardAcceleration (px/s)
+        -200,          // maxBackwardVelocity (px/s)
+        -60,           // backwardAcceleration (px/s)
+        90             // turningSpeed (deg/s)
     },
 
     // Mini car
     {
-        "Mini",     // name
-        71,         // width
-        116,        // height
-        1000,       // weight
-        700,        // maxForwardVelocity
-        200,        // forwardAcceleration
-        -200,       // maxBackwardVelocity
-        -60,        // backwardAcceleration
-        radians(90) // turningSpeed
+        "Mini", // name
+        71,     // width (px)
+        116,    // height (px)
+        1000,   // weight (kg)
+        700,    // maxForwardVelocity (px/s)
+        200,    // forwardAcceleration (px/s)
+        -200,   // maxBackwardVelocity (px/s)
+        -60,    // backwardAcceleration (px/s)
+        90      // turningSpeed (deg/s)
     },
 
     // Sport car
     {
-        "Sporty",   // name
-        70,         // width
-        131,        // height
-        1250,       // weight
-        700,        // maxForwardVelocity
-        200,        // forwardAcceleration
-        -200,       // maxBackwardVelocity
-        -60,        // backwardAcceleration
-        radians(90) // turningSpeed
+        "Sporty", // name
+        70,       // width (px)
+        131,      // height (px)
+        1250,     // weight (kg)
+        700,      // maxForwardVelocity (px/s)
+        200,      // forwardAcceleration (px/s)
+        -200,     // maxBackwardVelocity (px/s)
+        -60,      // backwardAcceleration (px/s)
+        90        // turningSpeed (deg/s)
     },
 
     // Truck car
     {
-        "Truck",    // name
-        71,         // width
-        131,        // height
-        15000,      // weight
-        700,        // maxForwardVelocity
-        200,        // forwardAcceleration
-        -200,       // maxBackwardVelocity
-        -60,        // backwardAcceleration
-        radians(90) // turningSpeed
+        "Truck", // name
+        71,      // width (px)
+        131,     // height (px)
+        15000,   // weight (kg)
+        700,     // maxForwardVelocity (px/s)
+        200,     // forwardAcceleration (px/s)
+        -200,    // maxBackwardVelocity (px/s)
+        -60,     // backwardAcceleration (px/s)
+        90       // turningSpeed (deg/s)
     },
 
     // Tesla car
     {
-        "Tesla",    // name
-        70,         // width
-        121,        // height
-        2000,       // weight
-        700,        // maxForwardVelocity
-        200,        // forwardAcceleration
-        -200,       // maxBackwardVelocity
-        -60,        // backwardAcceleration
-        radians(90) // turningSpeed
+        "Tesla", // name
+        70,      // width (px)
+        121,     // height (px)
+        2000,    // weight (kg)
+        700,     // maxForwardVelocity (px/s)
+        200,     // forwardAcceleration (px/s)
+        -200,    // maxBackwardVelocity (px/s)
+        -60,     // backwardAcceleration (px/s)
+        90       // turningSpeed (deg/s)
     },
 
     // Motor cycle
     {
-        "Motor cycle",  // name
-        44,             // width
-        100,            // height
-        150,            // weight
-        700,            // maxForwardVelocity
-        200,            // forwardAcceleration
-        -200,           // maxBackwardVelocity
-        -60,            // backwardAcceleration
-        radians(90)     // turningSpeed
+        "Motor cycle", // name
+        44,            // width (px)
+        100,           // height (px)
+        150,           // weight (kg)
+        700,           // maxForwardVelocity (px/s)
+        200,           // forwardAcceleration (px/s)
+        -200,          // maxBackwardVelocity (px/s)
+        -60,           // backwardAcceleration (px/s)
+        90             // turningSpeed (deg/s)
     }
 };
 
 std::unique_ptr<Image> Vehicle::images[static_cast<size_t>(Vehicle::Color::size)][static_cast<size_t>(Vehicle::Type::size)];
 
 Vehicle::Vehicle(int id, Vehicle::Type type, float x, float y, Vehicle::Color color, float angle)
-    : Object::Object(id, x, y), type(type), color(color), angle(angle)
-{
-    velocity = 1;
-}
+    : Object::Object(id, x, y), type(type), color(color), angle(angle), velocity(0), acceleration(0) {}
 
 Vehicle::Type Vehicle::getType() const {
     return type;
@@ -106,11 +103,11 @@ float Vehicle::getAngle() const {
     return angle;
 }
 
-int Vehicle::getVelocity() const {
+float Vehicle::getVelocity() const {
     return velocity;
 }
 
-int Vehicle::getAcceleration() const {
+float Vehicle::getAcceleration() const {
     return acceleration;
 }
 
@@ -126,10 +123,48 @@ void Vehicle::update(float delta) {
     if (driver) {
         driver->update(delta);
 
+        const Vehicle::Stats *stats = getStats(type);
+
         int zoomedInSize = Camera::zoomLevels[Camera::zoomLevelsSize - 1];
 
-        x -= (float)velocity / zoomedInSize * sin(angle) * delta;
-        y -= (float)velocity / zoomedInSize * cos(angle) * delta;
+        if (driver->turning == Driver::Turning::LEFT) {
+            angle += radians(stats->turningSpeed) * delta;
+        }
+
+        if (driver->turning == Driver::Turning::RIGHT) {
+            angle -= radians(stats->turningSpeed) * delta;
+        }
+
+        if (driver->moving == Driver::Moving::FORWARD) {
+            acceleration += 1 * delta; //((float)stats->forwardAcceleration / zoomedInSize) * delta;
+        }
+
+        if (driver->moving == Driver::Moving::BACKWARD) {
+            acceleration += 1 * delta; //((float)stats->forwardAcceleration / zoomedInSize) * delta;
+        }
+
+        if (driver->moving == Driver::Moving::NOT) {
+            acceleration = 0;
+
+            if (velocity > 0) {
+                velocity -= velocity * delta;
+            }
+
+            if (velocity < 0) {
+                velocity -= velocity * delta;
+            }
+        }
+
+        velocity += acceleration * delta;
+        if (velocity > 1) {//stats->maxForwardVelocity) {
+            velocity = 1;//stats->maxForwardVelocity;
+        }
+        if (velocity < -1) {//stats->maxBackwardVelocity) {
+            velocity = -1;//stats->maxBackwardVelocity;
+        }
+
+        x -= velocity / 100 * cos(angle) * delta;
+        y -= velocity / 100 * sin(angle) * delta;
     }
 }
 
@@ -148,7 +183,11 @@ void Vehicle::draw(std::shared_ptr<Canvas> canvas, const Camera *camera) const {
     vehicleRect.y = (int)(y * tileSize - (camera->getY() * tileSize - canvasRect->height / 2) - vehicleRect.height / 2);
 
     if (canvasRect->collides(&vehicleRect, angle)) {
-        getImage(type, color)->draw(&vehicleRect, angle);
+        getImage(type, color)->draw(&vehicleRect, angle - M_PI / 2);
+    }
+
+    if (driver) {
+        driver->draw(canvas, camera);
     }
 }
 

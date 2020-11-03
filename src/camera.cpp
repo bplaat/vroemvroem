@@ -8,6 +8,8 @@ const int Camera::zoomLevelsSize = (int)(sizeof(zoomLevels) / sizeof(zoomLevels[
 Camera::Camera(float x, float y, int width, int height, int zoom)
     : x(x), y(y), width(width), height(height), zoom(zoom)
 {
+    mouseX = 0;
+    mouseY = 0;
     drag.enabled = false;
 }
 
@@ -37,7 +39,20 @@ void Camera::setZoom(int zoom) {
     }
 }
 
+int Camera::getMouseX() const {
+    return mouseX;
+}
+
+int Camera::getMouseY() const {
+    return mouseY;
+}
+
 bool Camera::handleEvent(const SDL_Event *event) {
+    if (event->type == SDL_MOUSEMOTION) {
+        mouseX = event->button.x;
+        mouseY = event->button.y;
+    }
+
     if (event->type == SDL_MOUSEBUTTONDOWN && event->button.button == SDL_BUTTON_RIGHT) {
         drag.enabled = true;
         drag.begin.x = x;

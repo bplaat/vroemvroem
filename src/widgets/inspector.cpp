@@ -4,6 +4,7 @@
 #include "widgets/label.hpp"
 #include "objects/nature.hpp"
 #include "objects/house.hpp"
+#include "objects/road.hpp"
 #include "objects/city.hpp"
 #include "objects/vehicle.hpp"
 #include "fonts.hpp"
@@ -45,6 +46,12 @@ void Inspector::createWidgets() {
 
         if (const Objects::House *house = dynamic_cast<const Objects::House *>(object)) {
             name = Objects::House::getName(house->getType());
+        }
+
+        if (const Objects::Road *road = dynamic_cast<const Objects::Road *>(object)) {
+            char roadNameString[128];
+            sprintf(roadNameString, "Road (%d %s)", road->getLanes(), road->getLanes() == 1 ? "lane" : "lanes");
+            name = roadNameString;
         }
 
         if (const Objects::City *city = dynamic_cast<const Objects::City *>(object)) {
@@ -122,42 +129,74 @@ void Inspector::createWidgets() {
 
         y += 24 + 16;
 
-        // BUG
-        // // Create house population label
-        // if (const Objects::House *house = dynamic_cast<const Objects::House *>(object)) {
-        //     char populationString[128];
-        //     sprintf(populationString, "population = %d", house->getPopulation());
-        //     widgets.push_back(std::make_unique<Label>(
-        //         populationString,
-        //         std::move(std::make_unique<Rect>(rect->x + 16, rect->y + y, rect->width, 24)),
-        //         Fonts::getInstance()->getTextFont(),
-        //         24,
-        //         std::move(std::make_unique<Color>(255, 255, 255)),
-        //         Label::Align::LEFT,
-        //         nullptr,
-        //         nullptr
-        //     ));
+        // Create house population label
+        if (const Objects::House *house = dynamic_cast<const Objects::House *>(object)) {
+            char populationString[128];
+            sprintf(populationString, "population = %d", house->getPopulation());
+            widgets.push_back(std::make_unique<Label>(
+                populationString,
+                std::move(std::make_unique<Rect>(rect->x + 16, rect->y + y, rect->width, 24)),
+                Fonts::getInstance()->getTextFont(),
+                24,
+                std::move(std::make_unique<Color>(255, 255, 255)),
+                Label::Align::LEFT,
+                nullptr,
+                nullptr
+            ));
 
-        //     y += 24 + 16;
-        // }
+            y += 24 + 16;
+        }
 
-        // // Create city population label
-        // if (const Objects::City *city = dynamic_cast<const Objects::City *>(object)) {
-        //     char populationString[128];
-        //     sprintf(populationString, "population = %d", city->getPopulation());
-        //     widgets.push_back(std::make_unique<Label>(
-        //         populationString,
-        //         std::move(std::make_unique<Rect>(rect->x + 16, rect->y + y, rect->width, 24)),
-        //         Fonts::getInstance()->getTextFont(),
-        //         24,
-        //         std::move(std::make_unique<Color>(255, 255, 255)),
-        //         Label::Align::LEFT,
-        //         nullptr,
-        //         nullptr
-        //     ));
+        // Create road end x and end y label
+        if (const Objects::Road *road = dynamic_cast<const Objects::Road *>(object)) {
+            char endXString[128];
+            sprintf(endXString, "endX = %.02f", road->getEndX());
+            widgets.push_back(std::make_unique<Label>(
+                endXString,
+                std::move(std::make_unique<Rect>(rect->x + 16, rect->y + y, rect->width, 24)),
+                Fonts::getInstance()->getTextFont(),
+                24,
+                std::move(std::make_unique<Color>(255, 255, 255)),
+                Label::Align::LEFT,
+                nullptr,
+                nullptr
+            ));
 
-        //     y += 24 + 16;
-        // }
+            y += 24 + 16;
+
+            char endYString[128];
+            sprintf(endYString, "endY = %.02f", road->getEndY());
+            widgets.push_back(std::make_unique<Label>(
+                endYString,
+                std::move(std::make_unique<Rect>(rect->x + 16, rect->y + y, rect->width, 24)),
+                Fonts::getInstance()->getTextFont(),
+                24,
+                std::move(std::make_unique<Color>(255, 255, 255)),
+                Label::Align::LEFT,
+                nullptr,
+                nullptr
+            ));
+
+            y += 24 + 16;
+        }
+
+        // Create city population label
+        if (const Objects::City *city = dynamic_cast<const Objects::City *>(object)) {
+            char populationString[128];
+            sprintf(populationString, "population = %d", city->getPopulation());
+            widgets.push_back(std::make_unique<Label>(
+                populationString,
+                std::move(std::make_unique<Rect>(rect->x + 16, rect->y + y, rect->width, 24)),
+                Fonts::getInstance()->getTextFont(),
+                24,
+                std::move(std::make_unique<Color>(255, 255, 255)),
+                Label::Align::LEFT,
+                nullptr,
+                nullptr
+            ));
+
+            y += 24 + 16;
+        }
     }
 }
 

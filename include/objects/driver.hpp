@@ -7,10 +7,15 @@ class Driver;
 }
 
 #include "objects/vehicle.hpp"
+#include <memory>
+#include "canvas.hpp"
+#include "camera.hpp"
 
 namespace Objects {
 
 class Driver {
+        friend class Vehicle;
+
     public:
         enum class Moving {
             NOT,
@@ -22,7 +27,7 @@ class Driver {
         enum class Turning {
             NOT,
             LEFT,
-            RIGTH,
+            RIGHT,
             size
         };
 
@@ -51,6 +56,8 @@ class Driver {
         Driver::Turning getTurning() const;
 
         void update(float delta);
+
+        void draw(std::shared_ptr<Canvas> canvas, const Camera *camera) const;
 };
 
 }

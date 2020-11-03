@@ -20,7 +20,8 @@ bool Rect::collides(Rect *other) {
         y + height > other->y;
 }
 
-bool Rect::collides(Rect *other, float angle) { // TODO
+bool Rect::collides(Rect *other, float angle) {
+    (void)angle; // TODO
     //  int x0 = (other->x - other->x + other->width / 2);
     //  new_x_point = old_x_point * cos(Angle) - old_y_point * sin(Angle);
     //  new_y_point = old_y_point * cos(Angle) + old_x_point * sin(Angle);

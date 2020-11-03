@@ -20,6 +20,10 @@ class Camera {
 
         int zoom;
 
+        int mouseX;
+
+        int mouseY;
+
         struct {
             bool enabled;
 
@@ -33,7 +37,6 @@ class Camera {
                 int y;
             } mouse;
         } drag;
-
 
     public:
         Camera(float x, float y, int width, int height, int zoom);
@@ -53,6 +56,10 @@ class Camera {
         int getZoom() const;
 
         void setZoom(int zoom);
+
+        int getMouseX() const;
+
+        int getMouseY() const;
 
         bool handleEvent(const SDL_Event *event);
 };

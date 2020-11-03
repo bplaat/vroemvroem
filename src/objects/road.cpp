@@ -53,43 +53,33 @@ void Road::draw(std::shared_ptr<Canvas> canvas, const Camera *camera) const {
     for (int i = 0; i < ceil(length); i++) {
         for (int j = 0; j < lanes * 2; j++) {
             Road::Edge edge;
-            if (abs(x - endX) > abs(y - endY)) {
-                if (j == 0) {
-                    edge = Road::Edge::RIGHT;
-                } else if (j == lanes * 2 - 1) {
-                    edge = Road::Edge::LEFT;
-                } else {
-                    edge = Road::Edge::MIDDLE;
-                }
+            if (j == 0) {
+                edge = Road::Edge::LEFT;
+            } else if (j == lanes * 2 - 1) {
+                edge = Road::Edge::RIGHT;
             } else {
-                if (j == 0) {
-                    edge = Road::Edge::LEFT;
-                } else if (j == lanes * 2 - 1) {
-                    edge = Road::Edge::RIGHT;
-                } else {
-                    edge = Road::Edge::MIDDLE;
-                }
+                edge = Road::Edge::MIDDLE;
             }
 
-            Rect roadPartDestinationRect;
+            Rect roadPartRect;
             if (abs(x - endX) > abs(y - endY)) {
-                roadPartDestinationRect = {
+                roadPartRect = {
                     (int)(lineX * tileSize - (camera->getX() * tileSize - canvasRect->width / 2) - tileSize / 2),
                     (int)((lineY - lanes + j + 0.5) * tileSize - (camera->getY() * tileSize - canvasRect->height / 2) - tileSize / 2),
-                    tileSize, // + 2, // Fix for pixel gaps
+                    tileSize,
                     tileSize
                 };
             } else {
-                roadPartDestinationRect = {
+                roadPartRect = {
                     (int)((lineX - lanes + j + 0.5) * tileSize - (camera->getX() * tileSize - canvasRect->width / 2) - tileSize / 2),
                     (int)(lineY * tileSize - (camera->getY() * tileSize - canvasRect->height / 2) - tileSize / 2),
                     tileSize,
-                    tileSize //+ 2 // Fix for pixel gaps
+                    tileSize
                 };
             }
 
-            if (canvasRect->collides(&roadPartDestinationRect, angle)) {
-                getImage(edge)->draw(&roadPartDestinationRect, angle + M_PI / 2);
+            if (canvasRect->collides(&roadPartRect, angle)) {
+                getImage(edge)->draw(&roadPartRect, angle + M_PI / 2);
             }
         }
 

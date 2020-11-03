@@ -40,6 +40,24 @@ bool Viewport::handleEvent(const SDL_Event *event) {
 
         int tileSize = Camera::zoomLevels[camera->getZoom()];
 
+        // Check cities for mouse click
+        std::vector<const Objects::City *> cities = world->getCities();
+        for (auto const *city : cities) {
+            char cityLabel[128];
+            sprintf(cityLabel, "%s (%d)", city->getName(), city->getPopulation());
+
+            Rect cityRect;
+            cityRect.height = tileSize / 2;
+            cityRect.width = Fonts::getInstance()->getTextFont()->measure(cityLabel, cityRect.height);
+            cityRect.x = (int)(city->getX() * tileSize - (camera->getX() * tileSize - gameWidth / 2)) - cityRect.width / 2;
+            cityRect.y = (int)(city->getY() * tileSize - (camera->getY() * tileSize - gameHeight / 2)) - cityRect.height / 2;
+
+            if (cityRect.containsPoint(event->button.x, event->button.y)) {
+                inspector->setObject(dynamic_cast<const Objects::Object *>(city));
+                return true;
+            }
+        }
+
         // Check vehicles for mouse click
         std::vector<const Objects::Vehicle *> vehicles = world->getVehicles();
         for (auto const *vehicle : vehicles) {
@@ -58,20 +76,34 @@ bool Viewport::handleEvent(const SDL_Event *event) {
             }
         }
 
-        // Check cities for mouse click
-        std::vector<const Objects::City *> cities = world->getCities();
-        for (auto const *city : cities) {
-            char cityLabel[128];
-            sprintf(cityLabel, "%s (%d)", city->getName(), city->getPopulation());
+        // Check raods for mouse click
+        std::vector<const Objects::Road *> roads = world->getRoads();
+        for (auto const *road : roads) {
+            int x0 = (int)(road->getX() * tileSize - (camera->getX() * tileSize - gameWidth / 2));
+            int y0 = (int)(road->getY() * tileSize - (camera->getY() * tileSize - gameHeight / 2));
+            int x1 = (int)(road->getEndX() * tileSize - (camera->getX() * tileSize - gameWidth / 2));
+            int y1 = (int)(road->getEndY() * tileSize - (camera->getY() * tileSize - gameHeight / 2));
 
-            Rect cityRect;
-            cityRect.height = tileSize / 2;
-            cityRect.width = Fonts::getInstance()->getTextFont()->measure(cityLabel, cityRect.height);
-            cityRect.x = (int)(city->getX() * tileSize - (camera->getX() * tileSize - gameWidth / 2)) - cityRect.width / 2;
-            cityRect.y = (int)(city->getY() * tileSize - (camera->getY() * tileSize - gameHeight / 2)) - cityRect.height / 2;
+            int centerX = std::min(x0, x1) + (std::max(x0, x1) - std::min(x0, x1)) / 2;
+            int centerY = std::min(y0, y1) + (std::max(y0, y1) - std::min(y0, y1)) / 2;
+            int length = sqrt((x0 - x1) * (x0 - x1) + (y0 - y1) * (y0 - y1));
 
-            if (cityRect.containsPoint(event->button.x, event->button.y)) {
-                inspector->setObject(dynamic_cast<const Objects::Object *>(city));
+            int a = y0 - y1;
+            int b = x1 - x0;
+            int c = x0 * y1 - x1 * y0;
+
+            if (a == 0 && b == 0) {
+                continue;
+            }
+
+            float dist = abs(a * event->button.x + b * event->button.y + c) / sqrt(a * a + b * b);
+
+            if (
+                dist <= road->getLanes() * tileSize &&
+                abs(centerX - event->button.x) <= length / 2 &&
+                abs(centerY - event->button.y) <= length / 2
+            ) {
+                inspector->setObject(dynamic_cast<const Objects::Object *>(road));
                 return true;
             }
         }
@@ -156,7 +188,7 @@ void Viewport::createWidgets() {
     // Create inspector
     widgets.push_back(std::make_unique<Inspector>(
         nullptr,
-        std::move(std::make_unique<Rect>(rect->x, rect->y + (rect->height - 256), 320, 256)),
+        std::move(std::make_unique<Rect>(rect->x, rect->y + (rect->height - 320), 320, 320)),
         std::move(std::make_unique<Color>(34, 34, 34)),
         nullptr
     ));

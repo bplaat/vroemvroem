@@ -278,6 +278,11 @@ void World::update(float delta) {
     }
 }
 
+// // Vehicle rotation test
+// float x0 = 0;
+// float y0 = 0;
+// float angle = 0;
+
 void World::draw(std::shared_ptr<Canvas> canvas, const Camera *camera) const {
     std::unique_ptr<Rect> canvasRect = canvas->getRect();
 
@@ -314,15 +319,39 @@ void World::draw(std::shared_ptr<Canvas> canvas, const Camera *camera) const {
         road->draw(canvas, camera);
     }
 
+    // Draw vehicles
+    for (auto const &vehicle : vehicles) {
+        vehicle->draw(canvas, camera);
+    }
+
     // Draw cities
     for (auto const &city : cities) {
         city->draw(canvas, camera);
     }
 
-    // Draw vehicles
-    for (auto const &vehicle : vehicles) {
-        vehicle->draw(canvas, camera);
-    }
+    // // Vehicle rotation test
+    // {
+    //     int width = 128;
+    //     int height = 256;
+    //     if (x0 == 0) x0 = canvasRect->width / 2;
+    //     if (y0 == 0) y0 = canvasRect->height / 2;
+
+    //     int x1 = camera->getMouseX();
+    //     int y1 = camera->getMouseY();
+
+    //     float angleAdjust = atan2(y1 - y0, x1 - x0) - angle;
+    //     angle += std::min(angleAdjust, (float)radians(10));
+
+    //     x0 += 10 * cos(angle);
+    //     y0 += 10 * sin(angle);
+
+    //     Rect imageRect = { (int)(x0 - width / 2), (int)(y0 - height / 2), width, height };
+    //     Objects::Vehicle::getImage(Objects::Vehicle::Type::STANDARD, Objects::Vehicle::Color::RED)->draw(&imageRect, angle + M_PI / 2);
+
+    //     SDL_Renderer *renderer = canvas->getRenderer();
+    //     SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
+    //     SDL_RenderDrawLine(renderer, x0, y0, x1, y1);
+    // }
 }
 
 void World::addVehicle() {
@@ -354,7 +383,7 @@ void World::addVehicle() {
         return;
     }
 
-    float angle = atan2(destinationY - y, destinationX - x) + M_PI / 2;
+    float angle = atan2(y - destinationY, x - destinationX);
 
     std::unique_ptr<Objects::Vehicle> vehicle = std::make_unique<Objects::Vehicle>(
         vehicles.size(),
