@@ -146,7 +146,7 @@ void Game::start() {
     Objects::Terrain::loadImages(canvas);
     Objects::Nature::loadImages(canvas);
     Objects::House::loadImages(canvas);
-    Objects::Road::loadImages(canvas);
+    Objects::Road::loadImage(canvas);
     Objects::Vehicle::loadImages(canvas);
 
     #ifdef DEBUG

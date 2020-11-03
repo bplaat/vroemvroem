@@ -6,7 +6,10 @@
 namespace Objects {
 
 Driver::Driver(const Vehicle *vehicle, float destinationX, float destinationY)
-    : vehicle(vehicle), destinationX(destinationX), destinationY(destinationY), moving(Moving::FORWARD) {}
+    : vehicle(vehicle), destinationX(destinationX), destinationY(destinationY)
+{
+    moving = Moving::FORWARD;
+}
 
 const Vehicle *Driver::getVehicle() const {
     return vehicle;
@@ -28,6 +31,10 @@ Driver::Turning Driver::getTurning() const {
     return turning;
 }
 
+bool Driver::isArrived() const {
+    return arrived;
+}
+
 void Driver::update(float delta) {
     (void)delta;
 
@@ -36,9 +43,10 @@ void Driver::update(float delta) {
         sqrt(
             (vehicle->x - destinationX) * (vehicle->x - destinationX) +
             (vehicle->y - destinationY) * (vehicle->y - destinationY)
-        ) < 2
+        ) < 4
     ) {
         moving = Moving::NOT;
+        arrived = true;
     }
 }
 
@@ -62,7 +70,7 @@ void Driver::draw(std::shared_ptr<Canvas> canvas, const Camera *camera) const {
     destinationRect.height = std::max(y0, y1) - destinationRect.y;
 
     if (canvasRect->collides(&destinationRect)) {
-        SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
+        SDL_SetRenderDrawColor(renderer, 255, 255, 0, 255);
         SDL_RenderDrawLine(renderer, x0, y0, x1, y1);
     }
     #endif

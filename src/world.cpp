@@ -261,7 +261,7 @@ std::vector<const Objects::Vehicle *> World::getVehicles() const {
 bool World::handleEvent(const SDL_Event *event) {
     // Create vehicle on timer
     if (event->type == SDL_USEREVENT && event->user.code == vehicleTimerEventCode) {
-        for (size_t i = 0; i < cities.size() / 10; i++) {
+        for (size_t i = 0; i < cities.size() / 5; i++) {
             addVehicle();
         }
 
@@ -277,11 +277,6 @@ void World::update(float delta) {
         vehicle->update(delta);
     }
 }
-
-// // Vehicle rotation test
-// float x0 = 0;
-// float y0 = 0;
-// float angle = 0;
 
 void World::draw(std::shared_ptr<Canvas> canvas, const Camera *camera) const {
     std::unique_ptr<Rect> canvasRect = canvas->getRect();
@@ -319,39 +314,18 @@ void World::draw(std::shared_ptr<Canvas> canvas, const Camera *camera) const {
         road->draw(canvas, camera);
     }
 
-    // Draw vehicles
+    // Draw not arrived vehicles
     for (auto const &vehicle : vehicles) {
-        vehicle->draw(canvas, camera);
+        const Objects::Driver *driver = vehicle->getDriver();
+        if (driver && !driver->isArrived()) {
+            vehicle->draw(canvas, camera);
+        }
     }
 
     // Draw cities
     for (auto const &city : cities) {
         city->draw(canvas, camera);
     }
-
-    // // Vehicle rotation test
-    // {
-    //     int width = 128;
-    //     int height = 256;
-    //     if (x0 == 0) x0 = canvasRect->width / 2;
-    //     if (y0 == 0) y0 = canvasRect->height / 2;
-
-    //     int x1 = camera->getMouseX();
-    //     int y1 = camera->getMouseY();
-
-    //     float angleAdjust = atan2(y1 - y0, x1 - x0) - angle;
-    //     angle += std::min(angleAdjust, (float)radians(10));
-
-    //     x0 += 10 * cos(angle);
-    //     y0 += 10 * sin(angle);
-
-    //     Rect imageRect = { (int)(x0 - width / 2), (int)(y0 - height / 2), width, height };
-    //     Objects::Vehicle::getImage(Objects::Vehicle::Type::STANDARD, Objects::Vehicle::Color::RED)->draw(&imageRect, angle + M_PI / 2);
-
-    //     SDL_Renderer *renderer = canvas->getRenderer();
-    //     SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
-    //     SDL_RenderDrawLine(renderer, x0, y0, x1, y1);
-    // }
 }
 
 void World::addVehicle() {
@@ -360,21 +334,24 @@ void World::addVehicle() {
     float y = 0;
     float destinationX = 0;
     float destinationY = 0;
+    int lanes;
 
     for (const auto &road : roads) {
         if (random->random(1, 2) == 1 && road->getX() == city->getX() && road->getY() == city->getY()) {
-            x = road->getX();
-            y = road->getY();
-            destinationX = road->getEndX();
-            destinationY = road->getEndY();
+            x = road->getX() + 0.5;
+            y = road->getY() + 0.5;
+            destinationX = road->getEndX() + 0.5;
+            destinationY = road->getEndY() + 0.5;
+            lanes = road->getLanes();
             break;
         }
 
         if (random->random(1, 2) == 1 && road->getEndX() == city->getX() && road->getEndY() == city->getY()) {
-            x = road->getEndX();
-            y = road->getEndY();
-            destinationX = road->getX();
-            destinationY = road->getY();
+            x = road->getEndX() + 0.5;
+            y = road->getEndY() + 0.5;
+            destinationX = road->getX() + 0.5;
+            destinationY = road->getY() + 0.5;
+            lanes = road->getLanes();
             break;
         }
     }
@@ -383,13 +360,21 @@ void World::addVehicle() {
         return;
     }
 
+    if (abs(x - destinationX) > abs(y - destinationY)) {
+        y -= lanes - random->random(0, lanes);
+        destinationY -= lanes - random->random(0, lanes);
+    } else {
+        x -= lanes - random->random(0, lanes);
+        destinationX -= lanes - random->random(0, lanes);
+    }
+
     float angle = atan2(y - destinationY, x - destinationX);
 
     std::unique_ptr<Objects::Vehicle> vehicle = std::make_unique<Objects::Vehicle>(
         vehicles.size(),
         static_cast<Objects::Vehicle::Type>(random->random(static_cast<int>(Objects::Vehicle::Type::STANDARD), static_cast<int>(Objects::Vehicle::Type::MOTOR_CYCLE))),
-        x + 0.5,
-        y + 0.5,
+        x,
+        y,
         static_cast<Objects::Vehicle::Color>(random->random(static_cast<int>(Objects::Vehicle::Color::BLACK), static_cast<int>(Objects::Vehicle::Color::YELLOW))),
         angle
     );

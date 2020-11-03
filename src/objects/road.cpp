@@ -9,7 +9,7 @@
 
 namespace Objects {
 
-std::unique_ptr<Image> Road::images[static_cast<size_t>(Road::Edge::size)];
+std::unique_ptr<Image> Road::image;
 
 Road::Road(int id, float x, float y, float endX, float endY, int lanes, int speedLimit)
     : Object::Object(id, x, y), endX(endX), endY(endY), lanes(lanes), speedLimit(speedLimit) {}
@@ -43,53 +43,37 @@ void Road::draw(std::shared_ptr<Canvas> canvas, const Camera *camera) const {
 
     int tileSize = Camera::zoomLevels[camera->getZoom()];
 
-    float lineX = x <= endX ? x : endX;
-    float lineY = x <= endX ? y : endY;
-
-    float length = sqrt((x - endX) * (x - endX) + (y - endY) * (y - endY));
-
+    float lineX = x;
+    float lineY = y;
+    float length = sqrt((x - endX) * (x - endX) + (y - endY) * (y - endY)) ;
     float angle = atan2(endY - y, endX - x);
 
     for (int i = 0; i < ceil(length); i++) {
         for (int j = 0; j < lanes * 2; j++) {
-            Road::Edge edge;
-            if (j == 0) {
-                edge = Road::Edge::LEFT;
-            } else if (j == lanes * 2 - 1) {
-                edge = Road::Edge::RIGHT;
-            } else {
-                edge = Road::Edge::MIDDLE;
-            }
-
             Rect roadPartRect;
             if (abs(x - endX) > abs(y - endY)) {
                 roadPartRect = {
                     (int)(lineX * tileSize - (camera->getX() * tileSize - canvasRect->width / 2) - tileSize / 2),
                     (int)((lineY - lanes + j + 0.5) * tileSize - (camera->getY() * tileSize - canvasRect->height / 2) - tileSize / 2),
-                    tileSize,
-                    tileSize
+                    tileSize + 2,
+                    tileSize + 2
                 };
             } else {
                 roadPartRect = {
                     (int)((lineX - lanes + j + 0.5) * tileSize - (camera->getX() * tileSize - canvasRect->width / 2) - tileSize / 2),
                     (int)(lineY * tileSize - (camera->getY() * tileSize - canvasRect->height / 2) - tileSize / 2),
-                    tileSize,
-                    tileSize
+                    tileSize + 2,
+                    tileSize + 2
                 };
             }
 
             if (canvasRect->collides(&roadPartRect, angle)) {
-                getImage(edge)->draw(&roadPartRect, angle + M_PI / 2);
+                getImage()->draw(&roadPartRect, angle + M_PI / 2);
             }
         }
 
-        if (x <= endX) {
-            lineX += (endX - x) / length;
-            lineY += (endY - y) / length;
-        } else {
-            lineX += (x - endX) / length;
-            lineY += (y - endY) / length;
-        }
+        lineX += (endX - x) / length;
+        lineY += (endY - y) / length;
     }
 
     #ifdef DEBUG
@@ -112,14 +96,12 @@ void Road::draw(std::shared_ptr<Canvas> canvas, const Camera *camera) const {
     #endif
 }
 
-void Road::loadImages(std::shared_ptr<Canvas> canvas) {
-    images[static_cast<size_t>(Road::Edge::LEFT)] = std::make_unique<Image>(canvas, "assets/images/roads/road1.png", true);
-    images[static_cast<size_t>(Road::Edge::MIDDLE)] = std::make_unique<Image>(canvas, "assets/images/roads/road2.png", true);
-    images[static_cast<size_t>(Road::Edge::RIGHT)] = std::make_unique<Image>(canvas, "assets/images/roads/road3.png", true);
+void Road::loadImage(std::shared_ptr<Canvas> canvas) {
+    image = std::make_unique<Image>(canvas, "assets/images/roads/road.png", true);
 }
 
-const Image *Road::getImage(Road::Edge edge) {
-    return images[static_cast<size_t>(edge)].get();
+const Image *Road::getImage() {
+    return image.get();
 }
 
 }

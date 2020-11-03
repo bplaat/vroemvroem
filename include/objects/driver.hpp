@@ -42,6 +42,8 @@ class Driver {
 
         Driver::Turning turning = Driver::Turning::NOT;
 
+        bool arrived = false;
+
     public:
         Driver(const Vehicle *vehicle, float destinationX, float destinationY);
 
@@ -54,6 +56,8 @@ class Driver {
         Driver::Moving getMoving() const;
 
         Driver::Turning getTurning() const;
+
+        bool isArrived() const;
 
         void update(float delta);
 

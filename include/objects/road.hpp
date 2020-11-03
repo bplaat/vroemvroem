@@ -11,16 +11,8 @@
 namespace Objects {
 
 class Road : public Object {
-    public:
-        enum class Edge {
-            LEFT = 0,
-            MIDDLE,
-            RIGHT,
-            size
-        };
-
     private:
-        static std::unique_ptr<Image> images[static_cast<size_t>(Road::Edge::size)];
+        static std::unique_ptr<Image> image;
 
         float endX;
 
@@ -47,9 +39,9 @@ class Road : public Object {
 
         void draw(std::shared_ptr<Canvas> canvas, const Camera *camera) const;
 
-        static void loadImages(std::shared_ptr<Canvas> canvas);
+        static void loadImage(std::shared_ptr<Canvas> canvas);
 
-        static const Image *getImage(Road::Edge edge);
+        static const Image *getImage();
 };
 
 }

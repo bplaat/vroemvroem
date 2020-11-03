@@ -13,10 +13,10 @@ Vehicle::Stats Vehicle::stats[static_cast<size_t>(Vehicle::Type::size)] = {
         71,            // width (px)
         131,           // height (px)
         1600,          // weight (kg)
-        700,           // maxForwardVelocity (px/s)
-        200,           // forwardAcceleration (px/s)
-        -200,          // maxBackwardVelocity (px/s)
-        -60,           // backwardAcceleration (px/s)
+        350,           // maxForwardVelocity (px/s)
+        100,           // forwardAcceleration (px/s)
+        -100,          // maxBackwardVelocity (px/s)
+        -30,           // backwardAcceleration (px/s)
         90             // turningSpeed (deg/s)
     },
 
@@ -26,10 +26,10 @@ Vehicle::Stats Vehicle::stats[static_cast<size_t>(Vehicle::Type::size)] = {
         71,     // width (px)
         116,    // height (px)
         1000,   // weight (kg)
-        700,    // maxForwardVelocity (px/s)
-        200,    // forwardAcceleration (px/s)
-        -200,   // maxBackwardVelocity (px/s)
-        -60,    // backwardAcceleration (px/s)
+        300,    // maxForwardVelocity (px/s)
+        150,    // forwardAcceleration (px/s)
+        -110,   // maxBackwardVelocity (px/s)
+        -40,    // backwardAcceleration (px/s)
         90      // turningSpeed (deg/s)
     },
 
@@ -39,10 +39,10 @@ Vehicle::Stats Vehicle::stats[static_cast<size_t>(Vehicle::Type::size)] = {
         70,       // width (px)
         131,      // height (px)
         1250,     // weight (kg)
-        700,      // maxForwardVelocity (px/s)
-        200,      // forwardAcceleration (px/s)
-        -200,     // maxBackwardVelocity (px/s)
-        -60,      // backwardAcceleration (px/s)
+        500,      // maxForwardVelocity (px/s)
+        150,      // forwardAcceleration (px/s)
+        -150,     // maxBackwardVelocity (px/s)
+        -35,      // backwardAcceleration (px/s)
         90        // turningSpeed (deg/s)
     },
 
@@ -52,10 +52,10 @@ Vehicle::Stats Vehicle::stats[static_cast<size_t>(Vehicle::Type::size)] = {
         71,      // width (px)
         131,     // height (px)
         15000,   // weight (kg)
-        700,     // maxForwardVelocity (px/s)
-        200,     // forwardAcceleration (px/s)
-        -200,    // maxBackwardVelocity (px/s)
-        -60,     // backwardAcceleration (px/s)
+        200,     // maxForwardVelocity (px/s)
+        50,      // forwardAcceleration (px/s)
+        -100,    // maxBackwardVelocity (px/s)
+        -25,     // backwardAcceleration (px/s)
         90       // turningSpeed (deg/s)
     },
 
@@ -65,10 +65,10 @@ Vehicle::Stats Vehicle::stats[static_cast<size_t>(Vehicle::Type::size)] = {
         70,      // width (px)
         121,     // height (px)
         2000,    // weight (kg)
-        700,     // maxForwardVelocity (px/s)
+        300,     // maxForwardVelocity (px/s)
         200,     // forwardAcceleration (px/s)
-        -200,    // maxBackwardVelocity (px/s)
-        -60,     // backwardAcceleration (px/s)
+        -100,    // maxBackwardVelocity (px/s)
+        -50,     // backwardAcceleration (px/s)
         90       // turningSpeed (deg/s)
     },
 
@@ -78,10 +78,10 @@ Vehicle::Stats Vehicle::stats[static_cast<size_t>(Vehicle::Type::size)] = {
         44,            // width (px)
         100,           // height (px)
         150,           // weight (kg)
-        700,           // maxForwardVelocity (px/s)
-        200,           // forwardAcceleration (px/s)
-        -200,          // maxBackwardVelocity (px/s)
-        -60,           // backwardAcceleration (px/s)
+        200,           // maxForwardVelocity (px/s)
+        50,            // forwardAcceleration (px/s)
+        -100,          // maxBackwardVelocity (px/s)
+        -30,           // backwardAcceleration (px/s)
         90             // turningSpeed (deg/s)
     }
 };
@@ -89,7 +89,7 @@ Vehicle::Stats Vehicle::stats[static_cast<size_t>(Vehicle::Type::size)] = {
 std::unique_ptr<Image> Vehicle::images[static_cast<size_t>(Vehicle::Color::size)][static_cast<size_t>(Vehicle::Type::size)];
 
 Vehicle::Vehicle(int id, Vehicle::Type type, float x, float y, Vehicle::Color color, float angle)
-    : Object::Object(id, x, y), type(type), color(color), angle(angle), velocity(0), acceleration(0) {}
+    : Object::Object(id, x, y), type(type), color(color), angle(angle) {}
 
 Vehicle::Type Vehicle::getType() const {
     return type;
@@ -136,35 +136,28 @@ void Vehicle::update(float delta) {
         }
 
         if (driver->moving == Driver::Moving::FORWARD) {
-            acceleration += 1 * delta; //((float)stats->forwardAcceleration / zoomedInSize) * delta;
+            acceleration += stats->forwardAcceleration * delta;
         }
 
         if (driver->moving == Driver::Moving::BACKWARD) {
-            acceleration += 1 * delta; //((float)stats->forwardAcceleration / zoomedInSize) * delta;
+            acceleration += stats->backwardAcceleration * delta;
         }
 
         if (driver->moving == Driver::Moving::NOT) {
             acceleration = 0;
-
-            if (velocity > 0) {
-                velocity -= velocity * delta;
-            }
-
-            if (velocity < 0) {
-                velocity -= velocity * delta;
-            }
+            velocity = 0;
         }
 
         velocity += acceleration * delta;
-        if (velocity > 1) {//stats->maxForwardVelocity) {
-            velocity = 1;//stats->maxForwardVelocity;
+        if (velocity > stats->maxForwardVelocity) {
+            velocity = stats->maxForwardVelocity;
         }
-        if (velocity < -1) {//stats->maxBackwardVelocity) {
-            velocity = -1;//stats->maxBackwardVelocity;
+        if (velocity < stats->maxBackwardVelocity) {
+            velocity = stats->maxBackwardVelocity;
         }
 
-        x -= velocity / 100 * cos(angle) * delta;
-        y -= velocity / 100 * sin(angle) * delta;
+        x -= (velocity / zoomedInSize / zoomedInSize) * cos(angle) * delta;
+        y -= (velocity / zoomedInSize / zoomedInSize) * sin(angle) * delta;
     }
 }
 

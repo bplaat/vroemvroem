@@ -61,9 +61,9 @@ class Vehicle : public Object {
 
         float angle;
 
-        float velocity;
+        float velocity = 0;
 
-        float acceleration;
+        float acceleration = 0;
 
         std::unique_ptr<Driver> driver;
 

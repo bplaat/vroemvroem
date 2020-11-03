@@ -31,15 +31,17 @@ void City::draw(std::shared_ptr<Canvas> canvas, const Camera *camera) const {
     char cityLabel[128];
     sprintf(cityLabel, "%s (%d)", name, population);
 
+    Font *textFont = Fonts::getInstance()->getTextFont();
+
     int tileSize = Camera::zoomLevels[camera->getZoom()];
 
     Rect cityRect;
     cityRect.height = tileSize / 2;
-    cityRect.width = Fonts::getInstance()->getTextFont()->measure(cityLabel, cityRect.height);
+    cityRect.width = textFont->measure(cityLabel, cityRect.height);
     cityRect.x = (int)(x * tileSize - (camera->getX() * tileSize - canvasRect->width / 2)) - cityRect.width / 2;
     cityRect.y = (int)(y * tileSize - (camera->getY() * tileSize - canvasRect->height / 2)) - cityRect.height / 2;
 
-    if (canvasRect->collides(&cityRect) && camera->getZoom() >= Camera::zoomLevelsSize / 4) {
+    if (canvasRect->collides(&cityRect)) { // && camera->getZoom() >= Camera::zoomLevelsSize / 4) {
         std::unique_ptr<Color> rectColor = std::make_unique<Color>(0, 0, 0);
         canvas->fillRect(&cityRect, rectColor.get());
 
