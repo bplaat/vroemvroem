@@ -24,12 +24,12 @@ std::unique_ptr<Rect> Canvas::getRect() const {
 }
 
 void Canvas::clear(const Color *color) {
-    SDL_SetRenderDrawColor(renderer.get(), color->red, color->blue, color->green, color->alpha);
+    SDL_SetRenderDrawColor(renderer.get(), color->red, color->green, color->blue, color->alpha);
     SDL_RenderClear(renderer.get());
 }
 
 void Canvas::fillRect(const Rect *rect, const Color *color) {
-    SDL_SetRenderDrawColor(renderer.get(), color->red, color->blue, color->green, color->alpha);
+    SDL_SetRenderDrawColor(renderer.get(), color->red, color->green, color->blue, color->alpha);
     SDL_RenderFillRect(renderer.get(), (SDL_Rect *)rect);
 }
 
@@ -47,6 +47,11 @@ void Canvas::drawTexture(SDL_Texture *texture, const Rect *destinationRect, cons
 
 void Canvas::drawTexture(SDL_Texture *texture, const Rect *destinationRect, const Rect *sourceRect, float angle) {
     SDL_RenderCopyEx(renderer.get(), texture, (SDL_Rect *)sourceRect, (SDL_Rect *)destinationRect, degrees(angle), nullptr, SDL_FLIP_NONE);
+}
+
+void Canvas::drawLine(int x0, int y0, int x1, int y1, const Color *color) {
+    SDL_SetRenderDrawColor(renderer.get(), color->red, color->green, color->blue, color->alpha);
+    SDL_RenderDrawLine(renderer.get(), x0, y0, x1, y1);
 }
 
 void Canvas::present() {

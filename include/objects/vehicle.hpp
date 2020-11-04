@@ -84,6 +84,8 @@ class Vehicle : public Object {
 
         void setDriver(std::unique_ptr<Driver> driver);
 
+        void crash();
+
         void update(float delta);
 
         void draw(std::shared_ptr<Canvas> canvas, const Camera *camera) const;

@@ -31,6 +31,8 @@ class Canvas {
 
         void drawTexture(SDL_Texture *texture, const Rect *destinationRect, const Rect *sourceRect, float angle);
 
+        void drawLine(int x0, int y0, int x1, int y1, const Color *color);
+
         void present();
 
 };

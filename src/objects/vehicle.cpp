@@ -119,6 +119,12 @@ void Vehicle::setDriver(std::unique_ptr<Driver> driver) {
     this->driver = std::move(driver);
 }
 
+void Vehicle::crash() {
+    if (driver) {
+        driver->crash();
+    }
+}
+
 void Vehicle::update(float delta) {
     if (driver) {
         driver->update(delta);

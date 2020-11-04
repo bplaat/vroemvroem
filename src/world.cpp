@@ -10,8 +10,6 @@
 #include <map>
 #include <cmath>
 
-int World::vehicleTimerEventCode = 2;
-
 World::World(uint64_t seed, int width, int height)
     : seed(seed), width(width), height(height)
 {
@@ -258,10 +256,25 @@ std::vector<const Objects::Vehicle *> World::getVehicles() const {
     return vehiclePointers;
 }
 
+std::vector<const Objects::Explosion *> World::getExplosions() const {
+    std::vector<const Objects::Explosion *> explosionPointers;
+    for (auto const &explosion : explosions) {
+        explosionPointers.push_back(explosion.get());
+    }
+    return explosionPointers;
+}
+
 bool World::handleEvent(const SDL_Event *event) {
+    // Pass event to explosions
+    for (auto const &explosion : explosions) {
+        if (explosion->handleEvent(event)) {
+            return true;
+        }
+    }
+
     // Create vehicle on timer
     if (event->type == SDL_USEREVENT && event->user.code == vehicleTimerEventCode) {
-        for (size_t i = 0; i < cities.size() / 5; i++) {
+        for (size_t i = 0; i < cities.size() / 4; i++) {
             addVehicle();
         }
 
@@ -275,6 +288,34 @@ void World::update(float delta) {
     // Update vehicles
     for (auto &vehicle : vehicles) {
         vehicle->update(delta);
+    }
+
+    // Check collision
+    for (auto &vehicle : vehicles) {
+        if (vehicle->getDriver() && !vehicle->getDriver()->isArrived()) {
+            for (auto &otherVehicle : vehicles) {
+                if (vehicle->getId() != otherVehicle->getId()) {
+                    if (otherVehicle->getDriver() && !otherVehicle->getDriver()->isArrived()) {
+                        if (
+                            sqrt(
+                                (vehicle->getX() - otherVehicle->getX()) * (vehicle->getX() - otherVehicle->getX()) +
+                                (vehicle->getY() - otherVehicle->getY()) * (vehicle->getY() - otherVehicle->getY())
+                            ) < 1
+                        ) {
+                            vehicle->crash();
+                            otherVehicle->crash();
+
+                            explosions.push_back(std::make_unique<Objects::Explosion>(
+                                explosions.size(),
+                                static_cast<Objects::Explosion::Type>(random->random(static_cast<int>(Objects::Explosion::Type::FIRE), static_cast<int>(Objects::Explosion::Type::SMOKE))),
+                                vehicle->getX(),
+                                vehicle->getY()
+                            ));
+                        }
+                    }
+                }
+            }
+        }
     }
 }
 
@@ -320,6 +361,11 @@ void World::draw(std::shared_ptr<Canvas> canvas, const Camera *camera) const {
         if (driver && !driver->isArrived()) {
             vehicle->draw(canvas, camera);
         }
+    }
+
+    // Draw explosions
+    for (auto const &explosion : explosions) {
+        explosion->draw(canvas, camera);
     }
 
     // Draw cities

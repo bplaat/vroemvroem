@@ -10,5 +10,5 @@ class Config {
 
         static const char *gitRepoUrl;
 
-        static int vehicleTimeout;
+        static const int vehicleTimeout = 500;
 };

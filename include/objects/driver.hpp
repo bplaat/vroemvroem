@@ -59,6 +59,8 @@ class Driver {
 
         bool isArrived() const;
 
+        void crash();
+
         void update(float delta);
 
         void draw(std::shared_ptr<Canvas> canvas, const Camera *camera) const;

@@ -12,8 +12,6 @@
 
 namespace Pages {
 
-int IntroPage::timerEventCode = 1;
-
 IntroPage::IntroPage()
     : Page::Page()
 {

@@ -7,7 +7,7 @@ namespace Pages {
 
 class IntroPage : public Page {
     private:
-        static int timerEventCode;
+        static const int timerEventCode = 1;
 
         SDL_TimerID timer;
 

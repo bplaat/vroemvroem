@@ -11,6 +11,7 @@
 #include "objects/house.hpp"
 #include "objects/road.hpp"
 #include "objects/vehicle.hpp"
+#include "objects/explosion.hpp"
 #ifdef DEBUG
 #include "pages/game_page.hpp"
 #else
@@ -148,6 +149,7 @@ void Game::start() {
     Objects::House::loadImages(canvas);
     Objects::Road::loadImage(canvas);
     Objects::Vehicle::loadImages(canvas);
+    Objects::Explosion::loadImages(canvas);
 
     #ifdef DEBUG
     // Create game page

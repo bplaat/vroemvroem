@@ -10,12 +10,13 @@
 #include "objects/city.hpp"
 #include "objects/road.hpp"
 #include "objects/vehicle.hpp"
+#include "objects/explosion.hpp"
 #include <SDL2/SDL.h>
 #include "camera.hpp"
 
 class World {
     private:
-        static int vehicleTimerEventCode;
+        static const int vehicleTimerEventCode = 2;
 
         uint64_t seed;
 
@@ -39,6 +40,8 @@ class World {
 
         std::vector<std::unique_ptr<Objects::Vehicle>> vehicles;
 
+        std::vector<std::unique_ptr<Objects::Explosion>> explosions;
+
         SDL_TimerID vehicleTimer;
 
     public:
@@ -59,6 +62,8 @@ class World {
         std::vector<const Objects::Road *> getRoads() const;
 
         std::vector<const Objects::Vehicle *> getVehicles() const;
+
+        std::vector<const Objects::Explosion *> getExplosions() const;
 
         bool handleEvent(const SDL_Event *event);
 

@@ -19,6 +19,11 @@ float Object::getY() const {
     return y;
 }
 
+bool Object::handleEvent(const SDL_Event *event) {
+    (void)event;
+    return false;
+}
+
 void Object::update(float delta) {
     (void)delta;
 }

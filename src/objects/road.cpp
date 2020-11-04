@@ -45,7 +45,7 @@ void Road::draw(std::shared_ptr<Canvas> canvas, const Camera *camera) const {
 
     float lineX = x;
     float lineY = y;
-    float length = sqrt((x - endX) * (x - endX) + (y - endY) * (y - endY)) ;
+    float length = sqrt((x - endX) * (x - endX) + (y - endY) * (y - endY));
     float angle = atan2(endY - y, endX - x);
 
     for (int i = 0; i < ceil(length); i++) {
@@ -89,9 +89,8 @@ void Road::draw(std::shared_ptr<Canvas> canvas, const Camera *camera) const {
     roadRect.height = std::max(y0, y1) - roadRect.y;
 
     if (canvasRect->collides(&roadRect)) {
-        SDL_Renderer *renderer = canvas->getRenderer();
-        SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
-        SDL_RenderDrawLine(renderer, x0, y0, x1, y1);
+        std::unique_ptr<Color> color = std::make_unique<Color>(255, 0, 0);
+        canvas->drawLine(x0, y0, x1, y1, color.get());
     }
     #endif
 }

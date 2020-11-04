@@ -35,6 +35,11 @@ bool Driver::isArrived() const {
     return arrived;
 }
 
+void Driver::crash() {
+    moving = Moving::NOT;
+    arrived = true;
+}
+
 void Driver::update(float delta) {
     (void)delta;
 
@@ -56,8 +61,6 @@ void Driver::draw(std::shared_ptr<Canvas> canvas, const Camera *camera) const {
 
     int tileSize = Camera::zoomLevels[camera->getZoom()];
 
-    SDL_Renderer *renderer = canvas->getRenderer();
-
     int x0 = (int)(vehicle->x * tileSize - (camera->getX() * tileSize - canvasRect->width / 2));
     int y0 = (int)(vehicle->y * tileSize - (camera->getY() * tileSize - canvasRect->height / 2));
     int x1 = (int)(destinationX * tileSize - (camera->getX() * tileSize - canvasRect->width / 2));
@@ -70,8 +73,8 @@ void Driver::draw(std::shared_ptr<Canvas> canvas, const Camera *camera) const {
     destinationRect.height = std::max(y0, y1) - destinationRect.y;
 
     if (canvasRect->collides(&destinationRect)) {
-        SDL_SetRenderDrawColor(renderer, 255, 255, 0, 255);
-        SDL_RenderDrawLine(renderer, x0, y0, x1, y1);
+        std::unique_ptr<Color> color = std::make_unique<Color>(255, 255, 0);
+        canvas->drawLine(x0, y0, x1, y1, color.get());
     }
     #endif
 }
